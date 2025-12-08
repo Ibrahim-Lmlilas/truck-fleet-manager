@@ -1,4 +1,4 @@
-const { request, default: mongoose } = require('mongoose');
+const mongoose = require('mongoose');
 
 const camionSchema = new mongoose.Schema({
 
