@@ -13,7 +13,7 @@ class AuthController {
         );
     }
 
-    async register(req, res) {
+    register = async (req, res) => {
 
         try {
             const { nom, prenom, email, password, role } = req.body;
@@ -74,7 +74,7 @@ class AuthController {
         }
     }
 
-    async login(req, res) {
+    login = async (req, res) => {
         try {
             const { email, password } = req.body;
 
@@ -137,7 +137,7 @@ class AuthController {
         }
     }
 
-    async logout(req, res) {
+    logout = async (req, res) => {
         try {
             res.status(200).json({
                 success: true,
