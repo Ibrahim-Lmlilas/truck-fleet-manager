@@ -1,0 +1,130 @@
+@startuml Truck Fleet Manager - Use Case Diagram
+
+!define RECTANGLE class
+
+left to right direction
+
+actor Admin as admin
+actor Chauffeur as chauffeur
+
+rectangle "Système de Gestion de Flotte" {
+    
+    ' ========== CAS D'UTILISATION COMMUNS ==========
+    package "Authentification" {
+        usecase UC1 as "Se connecter"
+        usecase UC2 as "Se déconnecter"
+        usecase UC3 as "Voir son profil"
+    }
+    
+    ' ========== CAS D'UTILISATION ADMIN ==========
+    package "Gestion des Ressources" {
+        usecase UC4 as "Créer un camion"
+        usecase UC5 as "Modifier un camion"
+        usecase UC6 as "Supprimer un camion"
+        usecase UC7 as "Consulter la liste des camions"
+        usecase UC8 as "Créer une remorque"
+        usecase UC9 as "Modifier une remorque"
+        usecase UC10 as "Supprimer une remorque"
+        usecase UC11 as "Consulter la liste des remorques"
+        usecase UC12 as "Créer un pneu"
+        usecase UC13 as "Modifier un pneu"
+        usecase UC14 as "Supprimer un pneu"
+        usecase UC15 as "Consulter la liste des pneus"
+    }
+    
+    package "Gestion des Trajets" {
+        usecase UC16 as "Créer un trajet"
+        usecase UC17 as "Assigner un trajet à un chauffeur"
+        usecase UC18 as "Modifier un trajet"
+        usecase UC19 as "Supprimer un trajet"
+        usecase UC20 as "Consulter tous les trajets"
+        usecase UC21 as "Voir les détails d'un trajet"
+    }
+    
+    package "Rapports et Statistiques" {
+        usecase UC22 as "Consulter les rapports de consommation"
+        usecase UC23 as "Consulter les rapports de kilométrage"
+        usecase UC24 as "Consulter les rapports de maintenance"
+        usecase UC25 as "Exporter les rapports"
+    }
+    
+    package "Gestion de la Maintenance" {
+        usecase UC26 as "Planifier une maintenance"
+        usecase UC27 as "Configurer les règles de maintenance"
+        usecase UC28 as "Consulter les maintenances planifiées"
+        usecase UC29 as "Marquer une maintenance comme effectuée"
+        usecase UC30 as "Recevoir les notifications de maintenance"
+    }
+    
+    ' ========== CAS D'UTILISATION CHAUFFEUR ==========
+    package "Gestion des Trajets (Chauffeur)" {
+        usecase UC31 as "Voir la liste de ses trajets assignés"
+        usecase UC32 as "Voir les détails d'un trajet"
+        usecase UC33 as "Télécharger un trajet en PDF"
+        usecase UC34 as "Mettre à jour le statut du trajet\n(à faire, en cours, terminé)"
+    }
+    
+    package "Saisie des Données" {
+        usecase UC35 as "Saisir le kilométrage de départ"
+        usecase UC36 as "Saisir le kilométrage d'arrivée"
+        usecase UC37 as "Saisir le volume de gasoil consommé"
+        usecase UC38 as "Ajouter des remarques sur l'état du véhicule"
+    }
+}
+
+' ========== RELATIONS ADMIN ==========
+admin --> UC1
+admin --> UC2
+admin --> UC3
+admin --> UC4
+admin --> UC5
+admin --> UC6
+admin --> UC7
+admin --> UC8
+admin --> UC9
+admin --> UC10
+admin --> UC11
+admin --> UC12
+admin --> UC13
+admin --> UC14
+admin --> UC15
+admin --> UC16
+admin --> UC17
+admin --> UC18
+admin --> UC19
+admin --> UC20
+admin --> UC21
+admin --> UC22
+admin --> UC23
+admin --> UC24
+admin --> UC25
+admin --> UC26
+admin --> UC27
+admin --> UC28
+admin --> UC29
+admin --> UC30
+
+' ========== RELATIONS CHAUFFEUR ==========
+chauffeur --> UC1
+chauffeur --> UC2
+chauffeur --> UC3
+chauffeur --> UC31
+chauffeur --> UC32
+chauffeur --> UC33
+chauffeur --> UC34
+chauffeur --> UC35
+chauffeur --> UC36
+chauffeur --> UC37
+chauffeur --> UC38
+
+' ========== RELATIONS D'EXTENSION/INCLUSION ==========
+UC16 ..> UC17 : <<include>>
+UC34 ..> UC35 : <<extend>>
+UC34 ..> UC36 : <<extend>>
+UC34 ..> UC37 : <<extend>>
+UC34 ..> UC38 : <<extend>>
+UC26 ..> UC30 : <<extend>>
+UC27 ..> UC30 : <<extend>>
+
+@enduml
+
