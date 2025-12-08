@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User.model');
+const TokenBlacklist = require('../models/TokenBlacklist.model');
 
 const protect = async (req, res, next) => {
     try {
@@ -15,6 +16,15 @@ const protect = async (req, res, next) => {
             });
         }
         try {
+            // Vérifier si le token est blacklisté
+            const isBlacklisted = await TokenBlacklist.findOne({ token });
+            if (isBlacklisted) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Token invalide - Veuillez vous reconnecter'
+                });
+            }
+
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
             const user = await User.findById(decoded.id).select('-password');
             if (!user) {
@@ -30,6 +40,7 @@ const protect = async (req, res, next) => {
                 });
             }
             req.user = user;
+            req.token = token; // Sauvegarder le token pour l'utiliser dans logout
             next();
         } catch (error) {
             // Token invalide ou expiré

@@ -1,4 +1,5 @@
 const User = require('../models/User.model');
+const TokenBlacklist = require('../models/TokenBlacklist.model');
 const jwt = require('jsonwebtoken');
 
 
@@ -139,6 +140,17 @@ class AuthController {
 
     logout = async (req, res) => {
         try {
+            const token = req.token;
+            
+            const decoded = jwt.decode(token);
+            const expiresAt = new Date(decoded.exp * 1000); // exp est en secondes
+
+            await TokenBlacklist.create({
+                token: token,
+                userId: req.user.id,
+                expiresAt: expiresAt
+            });
+
             res.status(200).json({
                 success: true,
                 message: 'Déconnexion réussie'
