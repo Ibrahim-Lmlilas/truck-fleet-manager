@@ -161,13 +161,6 @@ const pneuSchema = yup.object({
             .required('Le camion est obligatoire')
             .matches(/^[0-9a-fA-F]{24}$/, 'ID camion invalide'),
 
-        position: yup.string()
-            .required('La position est obligatoire')
-            .oneOf(
-                ['avant-gauche', 'avant-droit', 'arrière-gauche', 'arrière-droit', 'secours'],
-                'Position invalide'
-            ),
-
         kmPose: yup.number()
             .required('Le kilométrage de pose est obligatoire')
             .integer('Le kilométrage doit être un nombre entier')
