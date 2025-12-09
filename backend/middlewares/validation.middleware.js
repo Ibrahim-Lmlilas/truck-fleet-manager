@@ -120,10 +120,32 @@ const updateKilometrageSchema = yup.object({
     })
 });
 
+const remorqueSchema = yup.object({
+    body: yup.object({
+        matricule: yup.string()
+            .required('Le matricule est obligatoire')
+            .min(3, 'Le matricule doit contenir au moins 3 caractères')
+            .max(20, 'Le matricule ne peut pas dépasser 20 caractères')
+            .matches(/^[A-Z0-9-]+$/, 'Le matricule doit contenir uniquement des lettres majuscules, chiffres et tirets'),
+
+        type: yup.string()
+            .required('Le type est obligatoire')
+            .min(2, 'Le type doit contenir au moins 2 caractères')
+            .max(50, 'Le type ne peut pas dépasser 50 caractères'),
+
+        capacite: yup.number()
+            .required('La capacité est obligatoire')
+            .positive('La capacité doit être positive')
+            .min(1, 'La capacité doit être au moins 1 tonne'),
+
+    })
+});
+
 module.exports = {
     validate,
     registerSchema,
     loginSchema,
     camionSchema,
-    updateKilometrageSchema
+    updateKilometrageSchema,
+    remorqueSchema
 };
