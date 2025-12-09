@@ -47,6 +47,44 @@ const loginSchema = yup.object({
     })
 });
 
+const camionSchema = yup.object({
+    body: yup.object({
+        matricule: yup.string()
+            .required('Le matricule est obligatoire')
+            .min(3, 'Le matricule doit contenir au moins 3 caractères')
+            .max(20, 'Le matricule ne peut pas dépasser 20 caractères')
+            .matches(/^[A-Z0-9-]+$/, 'Le matricule doit contenir uniquement des lettres majuscules, chiffres et tirets'),
+
+        marque: yup.string()
+            .required('La marque est obligatoire')
+            .min(2, 'La marque doit contenir au moins 2 caractères')
+            .max(50, 'La marque ne peut pas dépasser 50 caractères'),
+
+        modele: yup.string()
+            .required('Le modèle est obligatoire')
+            .min(2, 'Le modèle doit contenir au moins 2 caractères')
+            .max(50, 'Le modèle ne peut pas dépasser 50 caractères'),
+
+        annee: yup.number()
+            .required('L\'année est obligatoire')
+            .integer('L\'année doit être un nombre entier')
+            .min(1900, 'L\'année doit être supérieure à 1900')
+            .max(new Date().getFullYear() + 1, `L'année ne peut pas dépasser ${new Date().getFullYear() + 1}`),
+
+        kilometrage: yup.number()
+            .required('Le kilométrage est obligatoire')
+            .integer('Le kilométrage doit être un nombre entier')
+            .min(0, 'Le kilométrage doit être positif'),
+
+        statut: yup.string()
+            .oneOf(
+                ['disponible', 'en_route', 'en_maintenance', 'hors_service'],
+                'Statut invalide'
+            )
+            .default('disponible')
+    })
+});
+
 const validate = (schema) => async (req, res, next) => {
     try {
         await schema.validate({
@@ -73,8 +111,19 @@ const validate = (schema) => async (req, res, next) => {
     }
 };
 
+const updateKilometrageSchema = yup.object({
+    body: yup.object({
+        kilometrage: yup.number()
+            .required('Le kilométrage est obligatoire')
+            .integer('Le kilométrage doit être un nombre entier')
+            .min(0, 'Le kilométrage doit être positif')
+    })
+});
+
 module.exports = {
     validate,
     registerSchema,
-    loginSchema
+    loginSchema,
+    camionSchema,
+    updateKilometrageSchema
 };

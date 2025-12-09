@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/database');
 const authRoutes = require('./routes/auth.routes');
+const camionRoutes = require('./routes/camion.routes');
 
 
 const app = express();
@@ -15,6 +16,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use('/api/auth', authRoutes);
+app.use('/api/camions', camionRoutes);
 
 // Route racine
 app.get('/', (req, res) => {
