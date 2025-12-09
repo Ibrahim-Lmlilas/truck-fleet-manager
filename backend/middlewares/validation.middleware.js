@@ -138,6 +138,86 @@ const remorqueSchema = yup.object({
             .positive('La capacité doit être positive')
             .min(1, 'La capacité doit être au moins 1 tonne'),
 
+        statut: yup.string()
+            .oneOf(
+                ['disponible', 'en mission', 'en panne', 'en maintenance'],
+                'Statut invalide'
+            )
+            .default('disponible'),
+
+        remarques: yup.string()
+            .max(500, 'Les remarques ne peuvent pas dépasser 500 caractères')
+    })
+});
+
+const pneuSchema = yup.object({
+    body: yup.object({
+        reference: yup.string()
+            .required('La référence est obligatoire')
+            .min(3, 'La référence doit contenir au moins 3 caractères')
+            .max(50, 'La référence ne peut pas dépasser 50 caractères'),
+
+        camion: yup.string()
+            .required('Le camion est obligatoire')
+            .matches(/^[0-9a-fA-F]{24}$/, 'ID camion invalide'),
+
+        position: yup.string()
+            .required('La position est obligatoire')
+            .oneOf(
+                ['avant-gauche', 'avant-droit', 'arrière-gauche', 'arrière-droit', 'secours'],
+                'Position invalide'
+            ),
+
+        kmPose: yup.number()
+            .required('Le kilométrage de pose est obligatoire')
+            .integer('Le kilométrage doit être un nombre entier')
+            .min(0, 'Le kilométrage doit être positif'),
+
+        kmMax: yup.number()
+            .required('Le kilométrage maximum est obligatoire')
+            .integer('Le kilométrage doit être un nombre entier')
+            .min(1000, 'Le kilométrage maximum doit être au moins 1000 km')
+            .test('kmMax-greater', 'Le kilométrage maximum doit être supérieur au kilométrage de pose', 
+                function(value) {
+                    const { kmPose } = this.parent;
+                    return value > kmPose;
+                }
+            ),
+
+        prix: yup.number()
+            .positive('Le prix doit être positif')
+            .min(0, 'Le prix doit être positif'),
+
+        statut: yup.string()
+            .oneOf(
+                ['bon', 'usé', 'à remplacer', 'remplacé'],
+                'Statut invalide'
+            )
+            .default('bon')
+    })
+});
+
+const remplacerPneuSchema = yup.object({
+    body: yup.object({
+        nouveauPneu: yup.object({
+            reference: yup.string()
+                .required('La référence du nouveau pneu est obligatoire')
+                .min(3, 'La référence doit contenir au moins 3 caractères')
+                .max(50, 'La référence ne peut pas dépasser 50 caractères'),
+
+            kmPose: yup.number()
+                .integer('Le kilométrage doit être un nombre entier')
+                .min(0, 'Le kilométrage doit être positif'),
+
+            kmMax: yup.number()
+                .integer('Le kilométrage doit être un nombre entier')
+                .min(1000, 'Le kilométrage maximum doit être au moins 1000 km')
+                .default(80000),
+
+            prix: yup.number()
+                .positive('Le prix doit être positif')
+                .min(0, 'Le prix doit être positif')
+        }).required('Les informations du nouveau pneu sont obligatoires')
     })
 });
 
@@ -147,5 +227,7 @@ module.exports = {
     loginSchema,
     camionSchema,
     updateKilometrageSchema,
-    remorqueSchema
+    remorqueSchema,
+    pneuSchema,
+    remplacerPneuSchema
 };

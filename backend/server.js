@@ -5,6 +5,7 @@ const connectDB = require('./config/database');
 const authRoutes = require('./routes/auth.routes');
 const camionRoutes = require('./routes/camion.routes');
 const remorqueRoutes = require('./routes/remorque.routes');
+const pneuRoutes = require('./routes/pneu.routes');
 
 const errorHandler = require('./middlewares/error.middleware');
 
@@ -22,6 +23,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/camions', camionRoutes);
 app.use('/api/remorques', remorqueRoutes);
+app.use('/api/pneus', pneuRoutes);
 
 
 app.use(errorHandler);
