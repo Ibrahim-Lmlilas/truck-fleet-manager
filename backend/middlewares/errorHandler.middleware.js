@@ -20,15 +20,17 @@ const errorHandler = (err, req, res, next) => {
     err.statusCode = err.statusCode || 500;
     err.status = err.status || 'error';
 
-    if (process.env.NODE_ENV === 'development') {
-        console.error('❌ Erreur:', {
-            message: err.message,
-            stack: err.stack,
-            statusCode: err.statusCode,
-            name: err.name
-        });
-    } else {
-        console.error('❌ Erreur:', err.message);
+    if (process.env.NODE_ENV !== 'test') {
+        if (process.env.NODE_ENV === 'development') {
+            console.error('❌ Erreur:', {
+                message: err.message,
+                stack: err.stack,
+                statusCode: err.statusCode,
+                name: err.name
+            });
+        } else {
+            console.error('❌ Erreur:', err.message);
+        }
     }
 
     // Gestion des erreurs Mongoose ValidationError

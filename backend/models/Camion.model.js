@@ -55,7 +55,6 @@ const camionSchema = new mongoose.Schema({
     timestamps : true 
 });
 
-camionSchema.index({ matricule: 1 });
 camionSchema.index({marque: 1 });
 camionSchema.index({modele: 1 });
 camionSchema.index({annee: 1 });

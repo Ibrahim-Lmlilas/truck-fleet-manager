@@ -1,5 +1,6 @@
 const { MongoMemoryServer } = require('mongodb-memory-server');
-
+const dotenv = require('dotenv');
+dotenv.config();
 
 module.exports = async () => {
     const mongoServer = await MongoMemoryServer.create();

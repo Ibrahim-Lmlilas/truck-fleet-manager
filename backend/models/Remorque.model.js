@@ -38,7 +38,6 @@ const remorqueSchema = new mongoose.Schema({
     timestamps: true
 });
 
-remorqueSchema.index({ matricule: 1 });
 remorqueSchema.index({ type: 1 });
 remorqueSchema.index({ capacite: 1 });
 
