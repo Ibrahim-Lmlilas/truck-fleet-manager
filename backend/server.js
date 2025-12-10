@@ -4,6 +4,13 @@ const cors = require('cors');
 const connectDB = require('./config/database');
 const authRoutes = require('./routes/auth.routes');
 const camionRoutes = require('./routes/camion.routes');
+const remorqueRoutes = require('./routes/remorque.routes');
+const pneuRoutes = require('./routes/pneu.routes');
+const trajetRoutes = require('./routes/trajet.routes');
+const maintenanceRoutes = require('./routes/maintenance.routes');
+
+const { errorHandler, notFoundHandler } = require('./middlewares/errorHandler.middleware');
+
 
 
 const app = express();
@@ -14,9 +21,6 @@ connectDB();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-app.use('/api/auth', authRoutes);
-app.use('/api/camions', camionRoutes);
 
 // Route racine
 app.get('/', (req, res) => {
@@ -30,7 +34,6 @@ app.get('/', (req, res) => {
   });
 });
 
-
 // Health check route
 app.get('/api/health', (req, res) => {
   res.json({
@@ -39,6 +42,16 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+
+app.use('/api/auth', authRoutes);
+app.use('/api/camions', camionRoutes);
+app.use('/api/remorques', remorqueRoutes);
+app.use('/api/pneus', pneuRoutes);
+app.use('/api/trajets', trajetRoutes);
+app.use('/api/maintenances', maintenanceRoutes);
+
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 // ========== DÉMARRAGE SERVEUR ==========
 const PORT = process.env.PORT || 5000;
