@@ -1,6 +1,7 @@
 const request = require('supertest');
 const mongoose = require('mongoose');
 const express = require('express');
+const jwt = require('jsonwebtoken');
 const camionRoutes = require('../routes/camion.routes');
 const { errorHandler } = require('../middlewares/errorHandler.middleware');
 const User = require('../models/User.model');
@@ -19,7 +20,18 @@ let chauffeurToken;
 beforeAll(async () => {
     await mongoose.connect(global.__MONGO_URI__);
     console.log('✅ Connecté à test DB');
+});
 
+afterAll(async () => {
+    await mongoose.connection.close();
+    console.log('✅ Déconnecté de test DB');
+});
+
+beforeEach(async () => {
+    await Camion.deleteMany({});
+    await User.deleteMany({});
+    
+    // Re-create users for each test
     const admin = await User.create({
         nom: 'Admin',
         prenom: 'Test',
@@ -36,18 +48,8 @@ beforeAll(async () => {
         role: 'chauffeur'
     });
 
-    const jwt = require('jsonwebtoken');
     adminToken = jwt.sign({ id: admin._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE });
     chauffeurToken = jwt.sign({ id: chauffeur._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE });
-});
-
-afterAll(async () => {
-    await mongoose.connection.close();
-    console.log('✅ Déconnecté de test DB');
-});
-
-beforeEach(async () => {
-    await Camion.deleteMany({});
 });
 
 // ==================== TESTS ====================
