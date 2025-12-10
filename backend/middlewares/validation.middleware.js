@@ -321,6 +321,70 @@ const updateKmEtGasoilSchema = yup.object({
     )
 });
 
+const maintenanceSchema = yup.object({
+    body: yup.object({
+        vehicule: yup.string()
+            .required('Le véhicule est obligatoire')
+            .matches(/^[0-9a-fA-F]{24}$/, 'ID véhicule invalide'),
+
+        type: yup.string()
+            .required('Le type est obligatoire')
+            .oneOf(['vidange', 'révision', 'pneus', 'freins', 'autre'], 'Type de maintenance invalide'),
+
+        datePrevu: yup.date()
+            .required('La date prévue est obligatoire')
+            .typeError('La date prévue doit être une date valide'),
+
+        kmMaintenance: yup.number()
+            .integer('Le km maintenance doit être un nombre entier')
+            .min(0, 'Le km maintenance doit être positif'),
+
+        prochainKm: yup.number()
+            .integer('Le prochain km doit être un nombre entier')
+            .min(0, 'Le prochain km doit être positif')
+            .test('prochain-km-greater', 'Le prochain km doit être supérieur au km maintenance',
+                function(value) {
+                    const { kmMaintenance } = this.parent;
+                    if (!value || !kmMaintenance) return true;
+                    return value > kmMaintenance;
+                }
+            ),
+
+        cout: yup.number()
+            .min(0, 'Le coût doit être positif'),
+
+        statut: yup.string()
+            .oneOf(['planifiée', 'en cours', 'effectuée', 'reportée'], 'Statut invalide')
+            .default('planifiée'),
+
+        remarques: yup.string()
+            .max(500, 'Les remarques ne peuvent pas dépasser 500 caractères')
+            .trim()
+    })
+});
+
+const marquerEffectueeSchema = yup.object({
+    body: yup.object({
+        dateFait: yup.date()
+            .typeError('La date effectuée doit être une date valide'),
+
+        kmMaintenance: yup.number()
+            .integer('Le km maintenance doit être un nombre entier')
+            .min(0, 'Le km maintenance doit être positif'),
+
+        cout: yup.number()
+            .min(0, 'Le coût doit être positif'),
+
+        prochainKm: yup.number()
+            .integer('Le prochain km doit être un nombre entier')
+            .min(0, 'Le prochain km doit être positif'),
+
+        remarques: yup.string()
+            .max(500, 'Les remarques ne peuvent pas dépasser 500 caractères')
+            .trim()
+    })
+});
+
 module.exports = {
     validate,
     registerSchema,
@@ -332,5 +396,7 @@ module.exports = {
     remplacerPneuSchema,
     trajetSchema,
     updateStatutSchema,
-    updateKmEtGasoilSchema
+    updateKmEtGasoilSchema,
+    maintenanceSchema,
+    marquerEffectueeSchema
 };
