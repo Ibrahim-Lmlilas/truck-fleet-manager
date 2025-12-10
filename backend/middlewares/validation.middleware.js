@@ -214,6 +214,113 @@ const remplacerPneuSchema = yup.object({
     })
 });
 
+const trajetSchema = yup.object({
+    body: yup.object({
+        chauffeur: yup.string()
+            .required('Le chauffeur est obligatoire')
+            .matches(/^[0-9a-fA-F]{24}$/, 'ID chauffeur invalide'),
+
+        camion: yup.string()
+            .required('Le camion est obligatoire')
+            .matches(/^[0-9a-fA-F]{24}$/, 'ID camion invalide'),
+
+        remorque: yup.string()
+            .required('La remorque est obligatoire')
+            .matches(/^[0-9a-fA-F]{24}$/, 'ID remorque invalide'),
+
+        dateDepart: yup.date()
+            .required('La date de départ est obligatoire')
+            .typeError('La date de départ doit être une date valide'),
+
+        dateArrivee: yup.date()
+            .required('La date d\'arrivée est obligatoire')
+            .typeError('La date d\'arrivée doit être une date valide')
+            .test('date-after-depart', 'La date d\'arrivée doit être postérieure à la date de départ', 
+                function(value) {
+                    const { dateDepart } = this.parent;
+                    if (!dateDepart || !value) return true;
+                    return new Date(value) > new Date(dateDepart);
+                }
+            ),
+
+        lieuDepart: yup.string()
+            .required('Le lieu de départ est obligatoire')
+            .min(2, 'Le lieu de départ doit contenir au moins 2 caractères')
+            .max(200, 'Le lieu de départ ne peut pas dépasser 200 caractères')
+            .trim(),
+
+        lieuArrivee: yup.string()
+            .required('Le lieu d\'arrivée est obligatoire')
+            .min(2, 'Le lieu d\'arrivée doit contenir au moins 2 caractères')
+            .max(200, 'Le lieu d\'arrivée ne peut pas dépasser 200 caractères')
+            .trim(),
+
+        kmDepart: yup.number()
+            .integer('Le km départ doit être un nombre entier')
+            .min(0, 'Le km départ doit être positif'),
+
+        kmArrivee: yup.number()
+            .integer('Le km arrivée doit être un nombre entier')
+            .min(0, 'Le km arrivée doit être positif')
+            .test('km-after-depart', 'Le km arrivée doit être supérieur ou égal au km départ',
+                function(value) {
+                    const { kmDepart } = this.parent;
+                    if (!kmDepart || !value) return true;
+                    return value >= kmDepart;
+                }
+            ),
+
+        gasoilConsomme: yup.number()
+            .min(0, 'Le gasoil consommé doit être positif'),
+
+        statut: yup.string()
+            .oneOf(['à faire', 'en cours', 'terminé', 'annulé'], 'Statut invalide')
+            .default('à faire'),
+
+        remarques: yup.string()
+            .max(500, 'Les remarques ne peuvent pas dépasser 500 caractères')
+            .trim(),
+
+        description: yup.string()
+            .max(1000, 'La description ne peut pas dépasser 1000 caractères')
+            .trim()
+    })
+});
+
+const updateStatutSchema = yup.object({
+    body: yup.object({
+        statut: yup.string()
+            .required('Le statut est obligatoire')
+            .oneOf(['à faire', 'en cours', 'terminé', 'annulé'], 'Statut invalide. Statuts valides: à faire, en cours, terminé, annulé')
+    })
+});
+
+const updateKmEtGasoilSchema = yup.object({
+    body: yup.object({
+        kmDepart: yup.number()
+            .integer('Le km départ doit être un nombre entier')
+            .min(0, 'Le km départ doit être positif'),
+
+        kmArrivee: yup.number()
+            .integer('Le km arrivée doit être un nombre entier')
+            .min(0, 'Le km arrivée doit être positif')
+            .test('km-after-depart', 'Le km arrivée doit être supérieur ou égal au km départ',
+                function(value) {
+                    const { kmDepart } = this.parent;
+                    if (!value || !kmDepart) return true;
+                    return value >= kmDepart;
+                }
+            ),
+
+        gasoilConsomme: yup.number()
+            .min(0, 'Le gasoil consommé doit être positif')
+    }).test('at-least-one', 'Au moins un champ (kmDepart, kmArrivee, gasoilConsomme) doit être fourni', 
+        function(value) {
+            return value.kmDepart !== undefined || value.kmArrivee !== undefined || value.gasoilConsomme !== undefined;
+        }
+    )
+});
+
 module.exports = {
     validate,
     registerSchema,
@@ -222,5 +329,8 @@ module.exports = {
     updateKilometrageSchema,
     remorqueSchema,
     pneuSchema,
-    remplacerPneuSchema
+    remplacerPneuSchema,
+    trajetSchema,
+    updateStatutSchema,
+    updateKmEtGasoilSchema
 };
