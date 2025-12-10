@@ -2,6 +2,7 @@ const Trajet = require('../models/Trajet.model');
 const Camion = require('../models/Camion.model');
 const Remorque = require('../models/Remorque.model');
 const User = require('../models/User.model');
+const { generateOrdreMissionPDF } = require('../services/pdf.service');
 
 const getAllTrajets = async (req, res, next) => {
     try {
@@ -312,6 +313,45 @@ const deleteTrajet = async (req, res, next) => {
     }
 };
 
+const generatePDF = async (req, res, next) => {
+    try {
+        const trajet = await Trajet.findById(req.params.id)
+            .populate('chauffeur', 'nom prenom email')
+            .populate('camion', 'matricule marque modele kilometrage')
+            .populate('remorque', 'matricule type capacite');
+
+        if (!trajet) {
+            return res.status(404).json({
+                success: false,
+                message: 'Trajet non trouvé'
+            });
+        }
+
+        // Chauffeur ne peut générer que ses propres PDFs
+        if (req.user.role === 'chauffeur' && trajet.chauffeur._id.toString() !== req.user._id.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: 'Accès refusé - Vous ne pouvez générer que les PDFs de vos propres trajets'
+            });
+        }
+
+        // Générer le PDF
+        const pdfBuffer = await generateOrdreMissionPDF(trajet);
+
+        // Définir les headers pour le téléchargement
+        const fileName = `ordre_mission_${trajet._id.toString().substring(0, 8)}_${Date.now()}.pdf`;
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+        res.setHeader('Content-Length', pdfBuffer.length);
+
+        // Envoyer le PDF
+        res.send(pdfBuffer);
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     getAllTrajets,
     getTrajetById,
@@ -319,6 +359,7 @@ module.exports = {
     updateTrajet,
     updateStatut,
     updateKmEtGasoil,
-    deleteTrajet
+    deleteTrajet,
+    generatePDF
 };
 
