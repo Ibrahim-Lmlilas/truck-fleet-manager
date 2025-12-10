@@ -6,5 +6,9 @@ module.exports = {
     'controllers/**/*.js',
     'middlewares/**/*.js',
     'models/**/*.js'
-  ]
+  ],
+
+  globalSetup: './__tests__/setup.js',
+  globalTeardown: './__tests__/teardown.js',
+  testTimeout: 30000
 };
