@@ -60,6 +60,8 @@ export const deleteTrajet = async (id: string): Promise<{ success: boolean }> =>
 };
 
 export const getTrajetPDF = async (id: string): Promise<Blob> => {
-  const { data } = await apiClient.get(`/trajets/${id}/pdf`, { responseType: "blob" });
-  return data as Blob;
+  const response = await apiClient.get(`/trajets/${id}/pdf`, { 
+    responseType: "blob" 
+  });
+  return response.data as Blob;
 };

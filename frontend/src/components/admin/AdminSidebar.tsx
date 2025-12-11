@@ -12,7 +12,6 @@ const menuItems = [
   { path: "/admin/pneus", icon: "⚙️", label: "Pneus" },
   { path: "/admin/trajets", icon: "🗺️", label: "Trajets" },
   { path: "/admin/maintenances", icon: "🔧", label: "Maintenances" },
-  { path: "/admin/users", icon: "👥", label: "Utilisateurs" },
 ];
 
 export default function AdminSidebar({ isOpen, onClose }: Props) {

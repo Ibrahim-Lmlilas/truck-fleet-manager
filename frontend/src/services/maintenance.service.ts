@@ -56,7 +56,7 @@ export const updateMaintenance = async (
 
 export const marquerCommeEffectuee = async (
   id: string,
-  payload: { effectuee: boolean }
+  payload: { dateFait?: string; kmMaintenance?: number; cout?: number; remarques?: string; prochainKm?: number }
 ): Promise<Maintenance> => {
   const { data } = await apiClient.patch<{ success: boolean; data: Maintenance }>(`/maintenances/${id}/effectuee`, payload);
   return data.data;

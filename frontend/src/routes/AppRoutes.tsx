@@ -7,6 +7,9 @@ import Unauthorized from "../pages/Unauthorized";
 import AdminDashboard from "../pages/admin/Dashboard";
 import AdminCamions from "../pages/admin/Camions";
 import AdminRemorques from "../pages/admin/Remorques";
+import AdminPneus from "../pages/admin/Pneus";
+import AdminTrajets from "../pages/admin/Trajets";
+import AdminMaintenances from "../pages/admin/Maintenances";
 import ChauffeurDashboard from "../pages/chauffeur/Dashboard";
 import AdminLayout from "../layouts/AdminLayout";
 import ChauffeurLayout from "../layouts/ChauffeurLayout";
@@ -54,8 +57,10 @@ export default function AppRoutes() {
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="camions" element={<AdminCamions />} />
             <Route path="remorques" element={<AdminRemorques />} />
+            <Route path="pneus" element={<AdminPneus />} />
+            <Route path="trajets" element={<AdminTrajets />} />
+            <Route path="maintenances" element={<AdminMaintenances />} />
             {/* Futures routes admin */}
-            {/* <Route path="pneus" element={<AdminPneus />} /> */}
             {/* <Route path="trajets" element={<AdminTrajets />} /> */}
             {/* <Route path="maintenances" element={<AdminMaintenances />} /> */}
             {/* <Route path="users" element={<AdminUsers />} /> */}
