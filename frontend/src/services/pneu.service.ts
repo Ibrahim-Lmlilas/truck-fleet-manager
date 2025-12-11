@@ -2,42 +2,19 @@ import { apiClient } from "./apiClient";
 
 export type Pneu = {
   _id: string;
-  reference: string;
-  camion: string | {
-    _id: string;
-    matricule: string;
-    marque?: string;
-    modele?: string;
-    kilometrage?: number;
-  };
+  camionId: string;
   position: string; 
-  kmPose: number;
-  kmMax: number;
-  statut: "bon" | "usé" | "à remplacer" | "remplacé";
-  dateRemplacement?: string;
-  prix?: number;
+  marque?: string;
+  modele?: string;
+  dateInstallation?: string;
+  kmInstallation?: number;
+  usure?: number; // percentage
+  isDelete?: boolean;
   createdAt?: string;
   updatedAt?: string;
 };
 
-export type PneuPayload = {
-  reference: string;
-  camion: string;
-  position: string;
-  kmPose: number;
-  kmMax?: number;
-  statut?: "bon" | "usé" | "à remplacer" | "remplacé";
-  prix?: number;
-};
-
-export type RemplacementPayload = {
-  nouveauPneu: {
-    reference: string;
-    kmPose?: number;
-    prix?: number;
-    kmMax?: number;
-  };
-};
+export type PneuPayload = Omit<Pneu, "_id" | "createdAt" | "updatedAt" | "isDelete">;
 
 export const getPneus = async (): Promise<Pneu[]> => {
   const { data } = await apiClient.get<{ success: boolean; data: Pneu[] }>("/pneus");
@@ -59,30 +36,8 @@ export const getPneuById = async (id: string): Promise<Pneu> => {
   return data.data;
 };
 
-export const calculerUsure = async (id: string): Promise<{
-  pneu: { id: string; reference: string; position: string; statut: string };
-  camion: { matricule: string; kilometrageActuel: number };
-  usure: {
-    kmPose: number;
-    kmMax: number;
-    kmParcouru: number;
-    kmRestant: number;
-    pourcentageUsure: number;
-  };
-  alerte?: string;
-}> => {
-  const { data } = await apiClient.get<{ success: boolean; data: {
-    pneu: { id: string; reference: string; position: string; statut: string };
-    camion: { matricule: string; kilometrageActuel: number };
-    usure: {
-      kmPose: number;
-      kmMax: number;
-      kmParcouru: number;
-      kmRestant: number;
-      pourcentageUsure: number;
-    };
-    alerte?: string;
-  } }>(`/pneus/${id}/usure`);
+export const calculerUsure = async (id: string): Promise<{ usure: number }> => {
+  const { data } = await apiClient.get<{ success: boolean; data: { usure: number } }>(`/pneus/${id}/usure`);
   return data.data;
 };
 
@@ -93,9 +48,9 @@ export const createPneu = async (payload: PneuPayload): Promise<Pneu> => {
 
 export const remplacerPneu = async (
   id: string,
-  payload: RemplacementPayload
-): Promise<{ ancienPneu: Pneu; nouveauPneu: Pneu }> => {
-  const { data } = await apiClient.post<{ success: boolean; data: { ancienPneu: Pneu; nouveauPneu: Pneu } }>(`/pneus/${id}/remplacer`, payload);
+  payload: { dateInstallation?: string; kmInstallation?: number }
+): Promise<Pneu> => {
+  const { data } = await apiClient.post<{ success: boolean; data: Pneu }>(`/pneus/${id}/remplacer`, payload);
   return data.data;
 };
 
