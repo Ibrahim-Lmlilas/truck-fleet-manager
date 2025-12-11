@@ -61,10 +61,13 @@ export default function CamionsPage() {
     try {
       setLoading(true);
       const data = await getCamions();
-      setCamions(data);
-      setFilteredCamions(data.filter((c) => !c.isDelete));
+      const camionsArray = Array.isArray(data) ? data : [];
+      setCamions(camionsArray);
+      setFilteredCamions(camionsArray.filter((c) => !c.isDelete));
     } catch (error) {
       console.error("Erreur lors du chargement des camions:", error);
+      setCamions([]);
+      setFilteredCamions([]);
     } finally {
       setLoading(false);
     }

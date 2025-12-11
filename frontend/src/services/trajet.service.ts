@@ -19,44 +19,44 @@ export type Trajet = {
 export type TrajetPayload = Omit<Trajet, "_id" | "createdAt" | "updatedAt">;
 
 export const getTrajets = async (): Promise<Trajet[]> => {
-  const { data } = await apiClient.get<Trajet[]>("/trajets");
-  return data;
+  const { data } = await apiClient.get<{ success: boolean; data: Trajet[] }>("/trajets");
+  return data.data || [];
 };
 
 export const getTrajetById = async (id: string): Promise<Trajet> => {
-  const { data } = await apiClient.get<Trajet>(`/trajets/${id}`);
-  return data;
+  const { data } = await apiClient.get<{ success: boolean; data: Trajet }>(`/trajets/${id}`);
+  return data.data;
 };
 
 export const createTrajet = async (payload: TrajetPayload): Promise<Trajet> => {
-  const { data } = await apiClient.post<Trajet>("/trajets", payload);
-  return data;
+  const { data } = await apiClient.post<{ success: boolean; data: Trajet }>("/trajets", payload);
+  return data.data;
 };
 
 export const updateTrajet = async (id: string, payload: TrajetPayload): Promise<Trajet> => {
-  const { data } = await apiClient.put<Trajet>(`/trajets/${id}`, payload);
-  return data;
+  const { data } = await apiClient.put<{ success: boolean; data: Trajet }>(`/trajets/${id}`, payload);
+  return data.data;
 };
 
 export const updateStatut = async (
   id: string,
   payload: { statut: Trajet["statut"] }
 ): Promise<Trajet> => {
-  const { data } = await apiClient.patch<Trajet>(`/trajets/${id}/statut`, payload);
-  return data;
+  const { data } = await apiClient.patch<{ success: boolean; data: Trajet }>(`/trajets/${id}/statut`, payload);
+  return data.data;
 };
 
 export const updateKmEtGasoil = async (
   id: string,
   payload: { kmArrivee?: number; gasoil?: number }
 ): Promise<Trajet> => {
-  const { data } = await apiClient.patch<Trajet>(`/trajets/${id}/km-gasoil`, payload);
-  return data;
+  const { data } = await apiClient.patch<{ success: boolean; data: Trajet }>(`/trajets/${id}/km-gasoil`, payload);
+  return data.data;
 };
 
-export const deleteTrajet = async (id: string): Promise<{ success: boolean } | Trajet> => {
-  const { data } = await apiClient.delete<{ success: boolean } | Trajet>(`/trajets/${id}`);
-  return data;
+export const deleteTrajet = async (id: string): Promise<{ success: boolean }> => {
+  const { data } = await apiClient.delete<{ success: boolean; message?: string }>(`/trajets/${id}`);
+  return { success: data.success };
 };
 
 export const getTrajetPDF = async (id: string): Promise<Blob> => {
