@@ -1,16 +1,31 @@
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
 import { useAppSelector } from "@/redux/hooks";
+import { useEffect } from "react";
+import { setAuthToken } from "@/services/apiClient";
 
-type Props = {
-  children: React.ReactNode;
+type ProtectedRouteProps = {
   allowedRoles?: string[];
+  redirectTo?: string;
 };
 
-export default function ProtectedRoute({ children, allowedRoles }: Props) {
-  const { token, user, status } = useAppSelector((state) => state.auth);
-  const location = useLocation();
+export default function ProtectedRoute({ allowedRoles, redirectTo = "/login" }: ProtectedRouteProps) {
+  const { user, token, status } = useAppSelector((state) => state.auth);
 
-  if (status === "loading") {
+  useEffect(() => {
+    if (token) {
+      setAuthToken(token);
+    } else {
+      setAuthToken(null);
+    }
+  }, [token]);
+
+  // Si pas de token, rediriger vers login
+  if (!token) {
+    return <Navigate to={redirectTo} replace />;
+  }
+
+  // Si pas d'utilisateur mais token existe, attendre le chargement
+  if (!user || status === "loading") {
     return (
       <div className="flex justify-center items-center h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -18,16 +33,16 @@ export default function ProtectedRoute({ children, allowedRoles }: Props) {
     );
   }
 
-  // Check if user is authenticated
-  if (!token) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+  // Si le fetch a échoué (token invalide), rediriger vers login
+  if (status === "failed" && !user) {
+    return <Navigate to={redirectTo} replace />;
   }
 
-  if (allowedRoles && allowedRoles.length > 0) {
-    if (!user || !user.role || !allowedRoles.includes(user.role)) {
-      return <Navigate to="/unauthorized" replace />;
-    }
+  // Si des rôles sont spécifiés et l'utilisateur n'a pas le bon rôle
+  if (allowedRoles && allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
+    return <Navigate to="/unauthorized" replace />;
   }
 
-  return <>{children}</>;
+  return <Outlet />;
 }
+

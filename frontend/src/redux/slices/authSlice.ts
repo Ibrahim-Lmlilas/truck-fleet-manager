@@ -107,6 +107,9 @@ const authSlice = createSlice({
       .addCase(getMeThunk.rejected, (state, action) => {
         state.status = "failed";
         state.error = (action.payload as string) || action.error.message || null;
+        state.token = null;
+        state.user = null;
+        localStorage.removeItem("token");
       })
       .addCase(logoutThunk.fulfilled, (state) => {
         state.status = "succeeded";
