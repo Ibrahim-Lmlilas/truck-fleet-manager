@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -10,6 +12,24 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -43,6 +63,36 @@ export default function UtilisateursPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<string | null>(null);
+
+  // Fonction pour extraire le message d'erreur
+  const getErrorMessage = (error: any): string => {
+    if (!error) return "Une erreur est survenue";
+    
+    // Erreur de validation Yup avec plusieurs messages
+    if (error.response?.data?.errors) {
+      const errors = error.response.data.errors;
+      if (Array.isArray(errors)) {
+        return errors.join(", ");
+      }
+      if (typeof errors === "object") {
+        return Object.values(errors).flat().join(", ");
+      }
+    }
+    
+    // Message d'erreur unique
+    if (error.response?.data?.message) {
+      return error.response.data.message;
+    }
+    
+    // Erreur réseau
+    if (error.message) {
+      return error.message;
+    }
+    
+    return "Une erreur est survenue";
+  };
 
   const [formData, setFormData] = useState<UserPayload>({
     nom: "",
@@ -115,39 +165,54 @@ export default function UtilisateursPage() {
 
     try {
       await updateUser(editingUser.id, formData);
+      toast.success("Utilisateur modifié avec succès");
       setIsModalOpen(false);
       fetchUsers();
     } catch (error: any) {
       console.error("Erreur lors de la modification:", error);
-      const message = error.response?.data?.message || "Erreur lors de la modification de l'utilisateur";
-      alert(message);
+      const errorMessage = getErrorMessage(error);
+      toast.error(errorMessage, {
+        duration: 5000,
+      });
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm("Êtes-vous sûr de vouloir supprimer cet utilisateur ?")) {
-      return;
-    }
+  const handleDeleteClick = (id: string) => {
+    setUserToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!userToDelete) return;
 
     try {
-      await deleteUser(id);
+      await deleteUser(userToDelete);
+      toast.success("Utilisateur supprimé avec succès");
+      setDeleteDialogOpen(false);
+      setUserToDelete(null);
       fetchUsers();
     } catch (error: any) {
       console.error("Erreur lors de la suppression:", error);
-      const message = error.response?.data?.message || "Erreur lors de la suppression";
-      alert(message);
+      const errorMessage = getErrorMessage(error);
+      toast.error(errorMessage, {
+        duration: 5000,
+      });
     }
   };
 
   const toggleActive = async (user: User) => {
     try {
       await updateUser(user.id, { isActive: !user.isActive });
+      toast.success(`Utilisateur ${!user.isActive ? 'activé' : 'désactivé'} avec succès`);
       fetchUsers();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erreur lors de la modification du statut:", error);
-      alert("Erreur lors de la modification du statut");
+      const errorMessage = getErrorMessage(error);
+      toast.error(errorMessage, {
+        duration: 5000,
+      });
     }
   };
 
@@ -169,37 +234,31 @@ export default function UtilisateursPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gestion des Utilisateurs</h1>
-          <p className="text-gray-600 mt-1">
-            {filteredUsers.length} utilisateur(s) au total
-            {showChauffeursOnly && " (chauffeurs uniquement)"}
-          </p>
-        </div>
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Gestion des Utilisateurs</h1>
+        <p className="text-gray-600 mt-1">
+          {filteredUsers.length} utilisateur(s) au total
+          {showChauffeursOnly && " (chauffeurs uniquement)"}
+        </p>
       </div>
 
       {/* Filtres */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Filtres</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <Label htmlFor="search">Rechercher</Label>
+        <CardContent className="flex flex-col gap-4">
+          <div className="flex items-center gap-4">
+            <div className="flex-1">
               <Input
-                id="search"
-                placeholder="Nom, prénom, email..."
+                placeholder="Rechercher par nom, prénom, email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="mt-1"
+                className="max-w-md"
               />
             </div>
-            <div>
-              <Label htmlFor="role-filter">Rôle</Label>
+            <div className="sm:w-48">
               <Select value={selectedRole} onValueChange={setSelectedRole}>
-                <SelectTrigger className="mt-1">
+                <SelectTrigger>
                   <SelectValue placeholder="Tous les rôles" />
                 </SelectTrigger>
                 <SelectContent>
@@ -209,23 +268,19 @@ export default function UtilisateursPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex items-end">
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="show-chauffeurs"
-                  checked={showChauffeursOnly}
-                  onChange={(e) => setShowChauffeursOnly(e.target.checked)}
-                  className="rounded"
-                />
-                <Label htmlFor="show-chauffeurs" className="cursor-pointer">
-                  Afficher seulement les chauffeurs
-                </Label>
-              </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="show-chauffeurs"
+                checked={showChauffeursOnly}
+                onChange={(e) => setShowChauffeursOnly(e.target.checked)}
+                className="rounded"
+              />
+              <Label htmlFor="show-chauffeurs" className="cursor-pointer">
+                Chauffeurs uniquement
+              </Label>
             </div>
-          </div>
-          {(selectedRole !== "all" || searchTerm) && (
-            <div className="mt-4">
+            {(selectedRole !== "all" || searchTerm) && (
               <Button
                 variant="outline"
                 onClick={() => {
@@ -233,10 +288,10 @@ export default function UtilisateursPage() {
                   setSearchTerm("");
                 }}
               >
-                Réinitialiser les filtres
+                Réinitialiser
               </Button>
-            </div>
-          )}
+            )}
+          </div>
         </CardContent>
       </Card>
 
@@ -268,7 +323,7 @@ export default function UtilisateursPage() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Date création
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Actions
                       </th>
                     </tr>
@@ -311,22 +366,24 @@ export default function UtilisateursPage() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                           {formatDate(user.createdAt)}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <div className="flex justify-end gap-2">
+                        <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                          <div className="flex justify-center gap-2">
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => openEditModal(user)}
+                              title="Modifier"
                             >
-                              Modifier
+                              <Pencil className="w-4 h-4" />
                             </Button>
                             {user.id !== currentUser?.id && (
                               <Button
                                 variant="destructive"
                                 size="sm"
-                                onClick={() => handleDelete(user.id)}
+                                onClick={() => handleDeleteClick(user.id)}
+                                title="Supprimer"
                               >
-                                Supprimer
+                                <Trash2 className="w-4 h-4" />
                               </Button>
                             )}
                           </div>
@@ -339,28 +396,33 @@ export default function UtilisateursPage() {
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="px-6 py-4 border-t flex items-center justify-between">
-                  <div className="text-sm text-gray-600">
-                    Page {currentPage} sur {totalPages}
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      disabled={currentPage === 1}
-                    >
-                      Précédent
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                      disabled={currentPage === totalPages}
-                    >
-                      Suivant
-                    </Button>
-                  </div>
+                <div className="px-6 py-4 border-t flex justify-center">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious
+                          onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                          disabled={currentPage === 1}
+                        />
+                      </PaginationItem>
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                        <PaginationItem key={page}>
+                          <PaginationLink
+                            onClick={() => setCurrentPage(page)}
+                            isActive={page === currentPage}
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      ))}
+                      <PaginationItem>
+                        <PaginationNext
+                          onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                          disabled={currentPage === totalPages}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
                 </div>
               )}
             </>
@@ -391,18 +453,40 @@ export default function UtilisateursPage() {
                   <Input
                     id="nom"
                     required
+                    minLength={2}
+                    maxLength={50}
                     value={formData.nom}
-                    onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      // Only allow letters, spaces, hyphens, and apostrophes
+                      if (value === '' || /^[a-zA-ZÀ-ÿ\s'-]*$/.test(value)) {
+                        setFormData({ ...formData, nom: value });
+                      }
+                    }}
                   />
+                  <p className="text-xs text-gray-500">
+                    Entre 2 et 50 caractères (lettres uniquement)
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="prenom">Prénom *</Label>
                   <Input
                     id="prenom"
                     required
+                    minLength={2}
+                    maxLength={50}
                     value={formData.prenom}
-                    onChange={(e) => setFormData({ ...formData, prenom: e.target.value })}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      // Only allow letters, spaces, hyphens, and apostrophes
+                      if (value === '' || /^[a-zA-ZÀ-ÿ\s'-]*$/.test(value)) {
+                        setFormData({ ...formData, prenom: value });
+                      }
+                    }}
                   />
+                  <p className="text-xs text-gray-500">
+                    Entre 2 et 50 caractères (lettres uniquement)
+                  </p>
                 </div>
               </div>
               <div className="space-y-2">
@@ -411,9 +495,15 @@ export default function UtilisateursPage() {
                   id="email"
                   type="email"
                   required
+                  maxLength={100}
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value.toLowerCase() })
+                  }
                 />
+                <p className="text-xs text-gray-500">
+                  Maximum 100 caractères (en minuscules)
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="isActive">Statut</Label>
@@ -453,6 +543,26 @@ export default function UtilisateursPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action est irréversible. Cet utilisateur sera définitivement supprimé.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setUserToDelete(null)}>
+              Annuler
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-red-600 hover:bg-red-700">
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
