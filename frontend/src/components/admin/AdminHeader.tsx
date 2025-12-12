@@ -52,7 +52,7 @@ export default function AdminHeader({ onMenuClick }: Props) {
               </svg>
             </button>
             <h1 className="text-xl font-bold text-gray-800">
-              Admin Dashboard
+              <span className="text-red-700">A</span>dmin
             </h1>
           </div>
 
