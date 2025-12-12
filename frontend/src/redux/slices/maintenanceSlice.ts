@@ -96,9 +96,9 @@ export const updateMaintenanceThunk = createAsyncThunk(
 
 export const markEffectueeThunk = createAsyncThunk(
     "maintenances/markEffectuee",
-    async ({ id, effectuee }: { id: string; effectuee: boolean }, { rejectWithValue }) => {
+    async ({ id, dateFait, kmMaintenance, cout, remarques, prochainKm }: { id: string; dateFait?: string; kmMaintenance?: number; cout?: number; remarques?: string; prochainKm?: number }, { rejectWithValue }) => {
         try {
-            return await marquerCommeEffectuee(id, { effectuee });
+            return await marquerCommeEffectuee(id, { dateFait, kmMaintenance, cout, remarques, prochainKm });
         } catch (err: any) {
             return rejectWithValue(err?.response?.data?.message || "Mark as done failed");
         }
