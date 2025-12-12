@@ -474,20 +474,19 @@ export default function TrajetsPage() {
   const currentTrajets = filteredTrajets.slice(startIndex, endIndex);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Gestion des Trajets</h1>
-        <p className="text-gray-600 mt-1">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Gestion des Trajets</h1>
+        <p className="text-sm sm:text-base text-gray-600 mt-1">
           {filteredTrajets.length} trajet(s) au total
         </p>
       </div>
 
- 
         <CardHeader>
         </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <div className="flex items-center gap-4">
-            <Button onClick={openCreateModal}>
+        <CardContent className="flex flex-col gap-3 sm:gap-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+            <Button onClick={openCreateModal} className="w-full sm:w-auto">
               <Plus className="w-4 h-4 mr-2" />
               Ajouter un trajet
             </Button>
@@ -496,10 +495,10 @@ export default function TrajetsPage() {
                 placeholder="Rechercher par lieu, camion..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="max-w-md"
+                className="w-full sm:max-w-md"
               />
             </div>
-            <div className="sm:w-48">
+            <div className="w-full sm:w-48">
               <Select value={selectedStatut} onValueChange={setSelectedStatut}>
                 <SelectTrigger>
                   <SelectValue placeholder="Tous les statuts" />
@@ -514,7 +513,7 @@ export default function TrajetsPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="sm:w-48">
+            <div className="w-full sm:w-48">
               <Select value={selectedChauffeur} onValueChange={setSelectedChauffeur}>
                 <SelectTrigger>
                   <SelectValue placeholder="Tous les chauffeurs" />
@@ -533,7 +532,7 @@ export default function TrajetsPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="sm:w-48">
+            <div className="w-full sm:w-48">
               <Input
                 type="date"
                 value={dateDebut}
@@ -541,7 +540,7 @@ export default function TrajetsPage() {
                 placeholder="Date début"
               />
             </div>
-            <div className="sm:w-48">
+            <div className="w-full sm:w-48">
               <Input
                 type="date"
                 value={dateFin}
@@ -559,6 +558,7 @@ export default function TrajetsPage() {
                   setDateFin("");
                   setSearchTerm("");
                 }}
+                className="w-full sm:w-auto"
               >
                 Réinitialiser
               </Button>
@@ -570,12 +570,13 @@ export default function TrajetsPage() {
       <Card>
         <CardContent className="p-0">
           {loading ? (
-            <div className="p-8 text-center">
+            <div className="p-6 sm:p-8 text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
             </div>
           ) : currentTrajets.length > 0 ? (
             <>
-              <div className="overflow-x-auto">
+              {/* Desktop Table - visible on lg+ */}
+              <div className="hidden lg:block overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b">
                     <tr>
@@ -673,11 +674,98 @@ export default function TrajetsPage() {
                 </table>
               </div>
 
+              {/* Mobile/Tablet Cards - visible on < lg */}
+              <div className="lg:hidden divide-y divide-gray-200">
+                {currentTrajets.map((trajet) => {
+                  const chauffeurInfo = typeof trajet.chauffeur === 'object' ? trajet.chauffeur : null;
+                  const camionInfo = typeof trajet.camion === 'object' ? trajet.camion : null;
+                  const remorqueInfo = typeof trajet.remorque === 'object' ? trajet.remorque : null;
+
+                  return (
+                    <div key={trajet._id} className="p-4 sm:p-6 hover:bg-gray-50">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h3 className="text-base sm:text-lg font-semibold text-gray-900">
+                              {trajet.lieuDepart} → {trajet.lieuArrivee}
+                            </h3>
+                          </div>
+                          <p className="text-xs sm:text-sm text-gray-500">
+                            {formatDate(trajet.dateDepart)}
+                          </p>
+                        </div>
+                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatutColor(trajet.statut)}`}>
+                          {trajet.statut}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-xs sm:text-sm mb-3">
+                        <div>
+                          <span className="text-gray-500">Chauffeur:</span>
+                          <span className="ml-2 font-medium text-gray-900">
+                            {chauffeurInfo ? `${chauffeurInfo.prenom} ${chauffeurInfo.nom}` : 'N/A'}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Camion:</span>
+                          <span className="ml-2 font-medium text-gray-900">
+                            {camionInfo?.matricule || 'N/A'}
+                          </span>
+                        </div>
+                        {remorqueInfo && (
+                          <div>
+                            <span className="text-gray-500">Remorque:</span>
+                            <span className="ml-2 font-medium text-gray-900">
+                              {remorqueInfo.matricule}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex justify-end gap-2 flex-wrap">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openDetailModal(trajet)}
+                          title="Détails"
+                        >
+                          <Eye className="w-4 h-4 mr-1" />
+                          Détails
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openEditModal(trajet)}
+                          title="Modifier"
+                        >
+                          <Pencil className="w-4 h-4 mr-1" />
+                          Modifier
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDownloadPDF(trajet._id)}
+                          title="Télécharger PDF"
+                        >
+                          PDF
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDeleteClick(trajet._id)}
+                          title="Supprimer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="px-6 py-4 border-t flex justify-center">
+                <div className="px-4 sm:px-6 py-3 sm:py-4 border-t flex justify-center">
                   <Pagination>
-                    <PaginationContent>
+                    <PaginationContent className="gap-1 sm:gap-2">
                       <PaginationItem>
                         <PaginationPrevious
                           onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
@@ -706,10 +794,10 @@ export default function TrajetsPage() {
               )}
             </>
           ) : (
-            <div className="p-8 text-center text-gray-500">
+            <div className="p-6 sm:p-8 text-center text-sm sm:text-base text-gray-500">
               {searchTerm || selectedStatut !== "all" || selectedChauffeur !== "all" || dateDebut || dateFin
                 ? "Aucun trajet trouvé pour ces filtres"
-                : "Aucun trajet. Cliquez sur 'Nouveau trajet' pour commencer."}
+                : "Aucun trajet. Cliquez sur 'Ajouter un trajet' pour commencer."}
             </div>
           )}
         </CardContent>

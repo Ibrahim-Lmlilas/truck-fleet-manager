@@ -233,29 +233,29 @@ export default function UtilisateursPage() {
   const currentUsers = filteredUsers.slice(startIndex, endIndex);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Gestion des Utilisateurs</h1>
-        <p className="text-gray-600 mt-1">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Gestion des Utilisateurs</h1>
+        <p className="text-sm sm:text-base text-gray-600 mt-1">
           {filteredUsers.length} utilisateur(s) au total
           {showChauffeursOnly && " (chauffeurs uniquement)"}
         </p>
       </div>
 
-
+      <Card>
         <CardHeader>
         </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <div className="flex items-center gap-4">
+        <CardContent className="flex flex-col gap-3 sm:gap-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
             <div className="flex-1">
               <Input
                 placeholder="Rechercher par nom, prénom, email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="max-w-md"
+                className="w-full sm:max-w-md"
               />
             </div>
-            <div className="sm:w-48">
+            <div className="w-full sm:w-48">
               <Select value={selectedRole} onValueChange={setSelectedRole}>
                 <SelectTrigger>
                   <SelectValue placeholder="Tous les rôles" />
@@ -275,7 +275,7 @@ export default function UtilisateursPage() {
                 onChange={(e) => setShowChauffeursOnly(e.target.checked)}
                 className="rounded"
               />
-              <Label htmlFor="show-chauffeurs" className="cursor-pointer">
+              <Label htmlFor="show-chauffeurs" className="cursor-pointer text-xs sm:text-sm">
                 Chauffeurs uniquement
               </Label>
             </div>
@@ -286,23 +286,26 @@ export default function UtilisateursPage() {
                   setSelectedRole("all");
                   setSearchTerm("");
                 }}
+                className="w-full sm:w-auto"
               >
                 Réinitialiser
               </Button>
             )}
           </div>
         </CardContent>
+      </Card>
 
       {/* Table */}
       <Card>
         <CardContent className="p-0">
           {loading ? (
-            <div className="p-8 text-center">
+            <div className="p-6 sm:p-8 text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
             </div>
           ) : currentUsers.length > 0 ? (
             <>
-              <div className="overflow-x-auto">
+              {/* Desktop Table - visible on lg+ */}
+              <div className="hidden lg:block overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b">
                     <tr>
@@ -392,11 +395,81 @@ export default function UtilisateursPage() {
                 </table>
               </div>
 
+              {/* Mobile/Tablet Cards - visible on < lg */}
+              <div className="lg:hidden divide-y divide-gray-200">
+                {currentUsers.map((user) => (
+                  <div key={user.id} className="p-4 sm:p-6 hover:bg-gray-50">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex-1">
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-900">
+                          {user.prenom} {user.nom}
+                        </h3>
+                        <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+                          {user.email}
+                        </p>
+                      </div>
+                      <span
+                        className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                          user.role === 'admin'
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'bg-gray-100 text-gray-800'
+                        }`}
+                      >
+                        {user.role === 'admin' ? 'Admin' : 'Chauffeur'}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-xs sm:text-sm mb-3">
+                      <div>
+                        <span className="text-gray-500">Statut:</span>
+                        <button
+                          onClick={() => toggleActive(user)}
+                          disabled={user.id === currentUser?.id}
+                          className={`ml-2 px-2 py-1 text-xs font-semibold rounded-full ${
+                            user.isActive
+                              ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                              : 'bg-red-100 text-red-800 hover:bg-red-200'
+                          } ${user.id === currentUser?.id ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                        >
+                          {user.isActive ? 'Actif' : 'Inactif'}
+                        </button>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Créé le:</span>
+                        <span className="ml-2 font-medium text-gray-900">
+                          {formatDate(user.createdAt)}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openEditModal(user)}
+                        title="Modifier"
+                      >
+                        <Pencil className="w-4 h-4 mr-1" />
+                        Modifier
+                      </Button>
+                      {user.id !== currentUser?.id && (
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDeleteClick(user.id)}
+                          title="Supprimer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="px-6 py-4 border-t flex justify-center">
+                <div className="px-4 sm:px-6 py-3 sm:py-4 border-t flex justify-center">
                   <Pagination>
-                    <PaginationContent>
+                    <PaginationContent className="gap-1 sm:gap-2">
                       <PaginationItem>
                         <PaginationPrevious
                           onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
@@ -425,7 +498,7 @@ export default function UtilisateursPage() {
               )}
             </>
           ) : (
-            <div className="p-8 text-center text-gray-500">
+            <div className="p-6 sm:p-8 text-center text-sm sm:text-base text-gray-500">
               {searchTerm || selectedRole !== "all"
                 ? "Aucun utilisateur trouvé pour ces filtres"
                 : "Aucun utilisateur."}

@@ -453,10 +453,10 @@ export default function MaintenancesPage() {
   const currentMaintenances = filteredMaintenances.slice(startIndex, endIndex);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Gestion des Maintenances</h1>
-        <p className="text-gray-600 mt-1">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Gestion des Maintenances</h1>
+        <p className="text-sm sm:text-base text-gray-600 mt-1">
           {filteredMaintenances.length} maintenance(s) au total
           {alertes.length > 0 && (
             <span className="ml-2 text-red-600 font-semibold">
@@ -473,7 +473,7 @@ export default function MaintenancesPage() {
           <AlertDescription>
             <div className="mt-2 space-y-1">
               {alertes.slice(0, 5).map((alerte) => (
-                <div key={alerte.id} className="text-sm">
+                <div key={alerte.id} className="text-xs sm:text-sm">
                   <span className="font-semibold">{alerte.vehicule}</span> - {alerte.type}: {alerte.alerte}
                   {alerte.prochainKm && alerte.kmActuel && (
                     <span className="ml-2">
@@ -492,12 +492,11 @@ export default function MaintenancesPage() {
         </Alert>
       )}
 
-
         <CardHeader>
         </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <div className="flex items-center gap-4">
-            <Button onClick={openCreateModal}>
+        <CardContent className="flex flex-col gap-3 sm:gap-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+            <Button onClick={openCreateModal} className="w-full sm:w-auto">
               <Plus className="w-4 h-4 mr-2" />
               Planifier une maintenance
             </Button>
@@ -506,10 +505,10 @@ export default function MaintenancesPage() {
                 placeholder="Rechercher par type, véhicule..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="max-w-md"
+                className="w-full sm:max-w-md"
               />
             </div>
-            <div className="sm:w-48">
+            <div className="w-full sm:w-48">
               <Select value={selectedStatut} onValueChange={setSelectedStatut}>
                 <SelectTrigger>
                   <SelectValue placeholder="Tous les statuts" />
@@ -524,7 +523,7 @@ export default function MaintenancesPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="sm:w-48">
+            <div className="w-full sm:w-48">
               <Select value={selectedType} onValueChange={setSelectedType}>
                 <SelectTrigger>
                   <SelectValue placeholder="Tous les types" />
@@ -539,7 +538,7 @@ export default function MaintenancesPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="sm:w-48">
+            <div className="w-full sm:w-48">
               <Select value={selectedVehicule} onValueChange={setSelectedVehicule}>
                 <SelectTrigger>
                   <SelectValue placeholder="Tous les véhicules" />
@@ -554,7 +553,7 @@ export default function MaintenancesPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="sm:w-48">
+            <div className="w-full sm:w-48">
               <Input
                 type="date"
                 value={dateDebut}
@@ -562,7 +561,7 @@ export default function MaintenancesPage() {
                 placeholder="Date début"
               />
             </div>
-            <div className="sm:w-48">
+            <div className="w-full sm:w-48">
               <Input
                 type="date"
                 value={dateFin}
@@ -582,6 +581,7 @@ export default function MaintenancesPage() {
                   setSearchTerm("");
                   setShowAlertesOnly(false);
                 }}
+                className="w-full sm:w-auto"
               >
                 Réinitialiser
               </Button>
@@ -595,7 +595,7 @@ export default function MaintenancesPage() {
               onChange={(e) => setShowAlertesOnly(e.target.checked)}
               className="rounded"
             />
-            <Label htmlFor="show-alertes" className="cursor-pointer">
+            <Label htmlFor="show-alertes" className="cursor-pointer text-xs sm:text-sm">
               Afficher seulement les alertes
             </Label>
           </div>
@@ -605,12 +605,13 @@ export default function MaintenancesPage() {
       <Card>
         <CardContent className="p-0">
           {loading ? (
-            <div className="p-8 text-center">
+            <div className="p-6 sm:p-8 text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
             </div>
           ) : currentMaintenances.length > 0 ? (
             <>
-              <div className="overflow-x-auto">
+              {/* Desktop Table - visible on lg+ */}
+              <div className="hidden lg:block overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b">
                     <tr>
@@ -716,11 +717,99 @@ export default function MaintenancesPage() {
                 </table>
               </div>
 
+              {/* Mobile/Tablet Cards - visible on < lg */}
+              <div className="lg:hidden divide-y divide-gray-200">
+                {currentMaintenances.map((maintenance) => {
+                  const vehiculeInfo = typeof maintenance.vehicule === 'object' ? maintenance.vehicule : null;
+                  const joursRestants = getJoursRestants(maintenance.datePrevu);
+
+                  return (
+                    <div key={maintenance._id} className="p-4 sm:p-6 hover:bg-gray-50">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h3 className="text-base sm:text-lg font-semibold text-gray-900">
+                              {maintenance.type} - {vehiculeInfo?.matricule || 'N/A'}
+                            </h3>
+                          </div>
+                          <p className="text-xs sm:text-sm text-gray-500">
+                            {formatDate(maintenance.datePrevu)}
+                            {joursRestants < 0 && (
+                              <span className="ml-2 text-red-600">• En retard ({Math.abs(joursRestants)}j)</span>
+                            )}
+                            {joursRestants >= 0 && joursRestants <= 7 && (
+                              <span className="ml-2 text-orange-600">• {joursRestants}j restants</span>
+                            )}
+                          </p>
+                        </div>
+                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatutColor(maintenance.statut)}`}>
+                          {maintenance.statut}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-xs sm:text-sm mb-3">
+                        {maintenance.kmMaintenance && (
+                          <div>
+                            <span className="text-gray-500">KM:</span>
+                            <span className="ml-2 font-medium text-gray-900">
+                              {maintenance.kmMaintenance.toLocaleString()}
+                            </span>
+                          </div>
+                        )}
+                        {maintenance.prochainKm && (
+                          <div>
+                            <span className="text-gray-500">Prochain KM:</span>
+                            <span className="ml-2 font-medium text-gray-900">
+                              {maintenance.prochainKm.toLocaleString()} km
+                              {vehiculeInfo?.kilometrage && (
+                                <span className={maintenance.prochainKm - vehiculeInfo.kilometrage < 1000 ? "text-red-600" : ""}>
+                                  {" "}({maintenance.prochainKm - vehiculeInfo.kilometrage} restants)
+                                </span>
+                              )}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex justify-end gap-2 flex-wrap">
+                        {maintenance.statut !== 'effectuée' && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openEffectueeModal(maintenance)}
+                            className="text-green-600 hover:text-green-700"
+                            title="Marquer comme effectuée"
+                          >
+                            <CheckCircle2 className="w-4 h-4 mr-1" />
+                            Effectuée
+                          </Button>
+                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openEditModal(maintenance)}
+                          title="Modifier"
+                        >
+                          <Pencil className="w-4 h-4 mr-1" />
+                          Modifier
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDeleteClick(maintenance._id)}
+                          title="Supprimer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="px-6 py-4 border-t flex justify-center">
+                <div className="px-4 sm:px-6 py-3 sm:py-4 border-t flex justify-center">
                   <Pagination>
-                    <PaginationContent>
+                    <PaginationContent className="gap-1 sm:gap-2">
                       <PaginationItem>
                         <PaginationPrevious
                           onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
@@ -749,7 +838,7 @@ export default function MaintenancesPage() {
               )}
             </>
           ) : (
-            <div className="p-8 text-center text-gray-500">
+            <div className="p-6 sm:p-8 text-center text-sm sm:text-base text-gray-500">
               {searchTerm || selectedStatut !== "all" || selectedType !== "all" || selectedVehicule !== "all" || dateDebut || dateFin || showAlertesOnly
                 ? "Aucune maintenance trouvée pour ces filtres"
                 : "Aucune maintenance. Cliquez sur 'Planifier une maintenance' pour commencer."}

@@ -395,28 +395,29 @@ export default function ChauffeurTrajets() {
       <Card>
         <CardContent className="p-0">
           {loading ? (
-            <div className="p-8 text-center">
+            <div className="p-6 sm:p-8 text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
             </div>
           ) : currentTrajets.length > 0 ? (
             <>
-              <div className="overflow-x-auto">
+              {/* Desktop Table - visible on lg+ */}
+              <div className="hidden lg:block overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b">
                     <tr>
-                      <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Date départ
                       </th>
-                      <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Camion / Remorque
                       </th>
-                      <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Trajet
                       </th>
-                      <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Statut
                       </th>
-                      <th className="px-3 sm:px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Actions
                       </th>
                     </tr>
@@ -428,10 +429,10 @@ export default function ChauffeurTrajets() {
 
                       return (
                         <tr key={trajet._id} className="hover:bg-gray-50">
-                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {formatDate(trajet.dateDepart)}
                           </td>
-                          <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm text-gray-600 hidden sm:table-cell">
+                          <td className="px-6 py-4 text-sm text-gray-600">
                             <div>
                               <div className="font-medium">{camionInfo?.matricule || 'N/A'}</div>
                               {remorqueInfo && (
@@ -439,26 +440,26 @@ export default function ChauffeurTrajets() {
                               )}
                             </div>
                           </td>
-                          <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm text-gray-600">
+                          <td className="px-6 py-4 text-sm text-gray-600">
                             <div>
                               <div className="font-medium">{trajet.lieuDepart}</div>
                               <div className="text-xs">→ {trajet.lieuArrivee}</div>
                             </div>
                           </td>
-                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
+                          <td className="px-6 py-4 whitespace-nowrap">
                             <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatutColor(trajet.statut)}`}>
                               {trajet.statut}
                             </span>
                           </td>
-                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-center text-xs sm:text-sm font-medium">
-                            <div className="flex justify-center gap-1 sm:gap-2">
+                          <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                            <div className="flex justify-center gap-2">
                               <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => openDetailModal(trajet)}
                                 title="Détails"
                               >
-                                <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
+                                <Eye className="w-4 h-4" />
                               </Button>
                               <Button
                                 variant="outline"
@@ -466,7 +467,7 @@ export default function ChauffeurTrajets() {
                                 onClick={() => handleDownloadPDF(trajet._id)}
                                 title="Télécharger PDF"
                               >
-                                <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                                <Download className="w-4 h-4" />
                               </Button>
                             </div>
                           </td>
@@ -477,11 +478,74 @@ export default function ChauffeurTrajets() {
                 </table>
               </div>
 
+              {/* Mobile/Tablet Cards - visible on < lg */}
+              <div className="lg:hidden divide-y divide-gray-200">
+                {currentTrajets.map((trajet) => {
+                  const camionInfo = typeof trajet.camion === 'object' ? trajet.camion : null;
+                  const remorqueInfo = typeof trajet.remorque === 'object' ? trajet.remorque : null;
+
+                  return (
+                    <div key={trajet._id} className="p-4 sm:p-6 hover:bg-gray-50">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h3 className="text-base sm:text-lg font-semibold text-gray-900">
+                              {trajet.lieuDepart} → {trajet.lieuArrivee}
+                            </h3>
+                          </div>
+                          <p className="text-xs sm:text-sm text-gray-500">
+                            {formatDate(trajet.dateDepart)}
+                          </p>
+                        </div>
+                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatutColor(trajet.statut)}`}>
+                          {trajet.statut}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-xs sm:text-sm mb-3">
+                        <div>
+                          <span className="text-gray-500">Camion:</span>
+                          <span className="ml-2 font-medium text-gray-900">
+                            {camionInfo?.matricule || 'N/A'}
+                          </span>
+                        </div>
+                        {remorqueInfo && (
+                          <div>
+                            <span className="text-gray-500">Remorque:</span>
+                            <span className="ml-2 font-medium text-gray-900">
+                              {remorqueInfo.matricule}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openDetailModal(trajet)}
+                          title="Détails"
+                        >
+                          <Eye className="w-4 h-4 mr-1" />
+                          Détails
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDownloadPDF(trajet._id)}
+                          title="Télécharger PDF"
+                        >
+                          <Download className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="px-6 py-4 border-t flex justify-center">
+                <div className="px-4 sm:px-6 py-3 sm:py-4 border-t flex justify-center">
                   <Pagination>
-                    <PaginationContent>
+                    <PaginationContent className="gap-1 sm:gap-2">
                       <PaginationItem>
                         <PaginationPrevious
                           onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
@@ -510,7 +574,7 @@ export default function ChauffeurTrajets() {
               )}
             </>
           ) : (
-            <div className="p-8 text-center text-gray-500">
+            <div className="p-6 sm:p-8 text-center text-sm sm:text-base text-gray-500">
               {searchTerm || selectedStatut !== "all" || dateDebut || dateFin
                 ? "Aucun trajet trouvé pour ces filtres"
                 : "Aucun trajet assigné pour le moment"}
