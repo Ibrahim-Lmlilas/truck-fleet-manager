@@ -19,7 +19,18 @@ const app = express();
 connectDB();
 
 // Middlewares globaux
-app.use(cors());
+const corsOptions = {
+  origin: [
+    'http://localhost:4173',
+    'http://localhost:5173',
+    'https://truck-fleet-manager.vercel.app',
+    'https://truck-fleet-manager-git-main-spedibra-gmailcoms-projects.vercel.app',
+    /\.vercel\.app$/
+  ],
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
