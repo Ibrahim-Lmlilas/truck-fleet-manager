@@ -242,8 +242,7 @@ export default function UtilisateursPage() {
         </p>
       </div>
 
-      {/* Filtres */}
-      <Card>
+
         <CardHeader>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
@@ -293,7 +292,6 @@ export default function UtilisateursPage() {
             )}
           </div>
         </CardContent>
-      </Card>
 
       {/* Table */}
       <Card>
@@ -520,12 +518,7 @@ export default function UtilisateursPage() {
                   </SelectContent>
                 </Select>
               </div>
-              {editingUser && (
-                <div className="p-3 bg-gray-50 rounded text-sm">
-                  <div><strong>Rôle:</strong> {editingUser.role === 'admin' ? 'Administrateur' : 'Chauffeur'}</div>
-                  <div className="text-xs text-gray-500 mt-1">Le rôle ne peut pas être modifié</div>
-                </div>
-              )}
+             
             </div>
             <DialogFooter>
               <Button
