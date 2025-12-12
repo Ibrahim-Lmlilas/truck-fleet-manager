@@ -5,6 +5,7 @@ import Register from "../pages/auth/Register";
 import NotFound from "../pages/NotFound";
 import Unauthorized from "../pages/Unauthorized";
 import AccountPending from "../pages/AccountPending";
+import Landing from "../pages/Landing";
 import AdminDashboard from "../pages/admin/Dashboard";
 import AdminCamions from "../pages/admin/Camions";
 import AdminRemorques from "../pages/admin/Remorques";
@@ -23,7 +24,7 @@ function RoleBasedRedirect() {
   const { user, token } = useAppSelector((state) => state.auth);
 
   if (!token) {
-    return <Navigate to="/login" replace />;
+    return <Landing />;
   }
 
   if (!user) {
