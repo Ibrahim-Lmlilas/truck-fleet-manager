@@ -225,7 +225,6 @@ const trajetSchema = yup.object({
             .matches(/^[0-9a-fA-F]{24}$/, 'ID camion invalide'),
 
         remorque: yup.string()
-            .required('La remorque est obligatoire')
             .matches(/^[0-9a-fA-F]{24}$/, 'ID remorque invalide'),
 
         dateDepart: yup.date()

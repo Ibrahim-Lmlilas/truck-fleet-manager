@@ -8,6 +8,7 @@ const remorqueRoutes = require('./routes/remorque.routes');
 const pneuRoutes = require('./routes/pneu.routes');
 const trajetRoutes = require('./routes/trajet.routes');
 const maintenanceRoutes = require('./routes/maintenance.routes');
+const userRoutes = require('./routes/user.routes');
 
 const { errorHandler, notFoundHandler } = require('./middlewares/errorHandler.middleware');
 
@@ -49,6 +50,7 @@ app.use('/api/remorques', remorqueRoutes);
 app.use('/api/pneus', pneuRoutes);
 app.use('/api/trajets', trajetRoutes);
 app.use('/api/maintenances', maintenanceRoutes);
+app.use('/api/users', userRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

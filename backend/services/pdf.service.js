@@ -72,15 +72,22 @@ const generateOrdreMissionPDF = async (trajet) => {
 
             doc.fontSize(11)
                 .font('Helvetica')
-                .text(`Camion: ${trajet.camion.marque} ${trajet.camion.modele}`, { indent: 20 })
+                .text(`Camion: ${trajet.camion.marque || ''} ${trajet.camion.modele || ''}`.trim() || 'N/A', { indent: 20 })
                 .text(`Matricule: ${trajet.camion.matricule}`, { indent: 20 })
                 .text(`Kilométrage: ${trajet.camion.kilometrage || 'N/A'} km`, { indent: 20 })
                 .moveDown(0.5);
 
-            doc.text(`Remorque: ${trajet.remorque.type}`, { indent: 20 })
-                .text(`Matricule remorque: ${trajet.remorque.matricule}`, { indent: 20 })
-                .text(`Capacité: ${trajet.remorque.capacite} tonnes`, { indent: 20 })
-                .moveDown(1);
+            // Informations remorque (si disponible)
+            if (trajet.remorque && trajet.remorque._id) {
+                doc.text(`Remorque: ${trajet.remorque.type || 'N/A'}`, { indent: 20 })
+                    .text(`Matricule remorque: ${trajet.remorque.matricule || 'N/A'}`, { indent: 20 });
+                if (trajet.remorque.capacite) {
+                    doc.text(`Capacité: ${trajet.remorque.capacite} tonnes`, { indent: 20 });
+                }
+            } else {
+                doc.text(`Remorque: Aucune remorque assignée`, { indent: 20 });
+            }
+            doc.moveDown(1);
 
             // Informations du trajet
             doc.fontSize(14)

@@ -41,26 +41,34 @@ class AuthController {
                 });
             }
 
+            // Les nouveaux chauffeurs sont inactifs par défaut, les admins sont actifs
+            const finalRole = role || 'chauffeur';
+            const isActive = finalRole === 'admin' ? true : false;
+
             const user = await User.create({
                 nom,
                 prenom,
                 email: email.toLowerCase(),
                 password,
-                role: role || 'chauffeur'
+                role: finalRole,
+                isActive: isActive
             });
 
             const token = this.generateToken(user._id);
 
             res.status(201).json({
                 success: true,
-                message: 'Inscription réussie',
+                message: finalRole === 'chauffeur' 
+                    ? 'Inscription réussie. Votre compte est en attente d\'approbation par l\'administrateur.'
+                    : 'Inscription réussie',
                 data: {
                     user: {
                         id: user._id,
                         nom: user.nom,
                         prenom: user.prenom,
                         email: user.email,
-                        role: user.role
+                        role: user.role,
+                        isActive: user.isActive
                     },
                     token
                 }
@@ -95,13 +103,6 @@ class AuthController {
                 });
             }
 
-            if (!user.isActive) {
-                return res.status(403).json({
-                    success: false,
-                    message: 'Votre compte est désactivé'
-                });
-            }
-
             const isPasswordValid = await user.comparePassword(password);
 
             if (!isPasswordValid) {
@@ -122,7 +123,8 @@ class AuthController {
                         nom: user.nom,
                         prenom: user.prenom,
                         email: user.email,
-                        role: user.role
+                        role: user.role,
+                        isActive: user.isActive
                     },
                     token
                 }
