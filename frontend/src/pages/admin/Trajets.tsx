@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Pencil, Trash2, Plus, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -10,6 +12,24 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -115,6 +135,8 @@ export default function TrajetsPage() {
   const [editingTrajet, setEditingTrajet] = useState<TrajetBackend | null>(null);
   const [selectedTrajet, setSelectedTrajet] = useState<TrajetBackend | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [trajetToDelete, setTrajetToDelete] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<TrajetPayloadBackend>({
     chauffeur: "",
@@ -128,6 +150,34 @@ export default function TrajetsPage() {
     remarques: "",
     description: "",
   });
+
+  // Fonction pour extraire le message d'erreur
+  const getErrorMessage = (error: any): string => {
+    if (!error) return "Une erreur est survenue";
+    
+    // Erreur de validation Yup avec plusieurs messages
+    if (error.response?.data?.errors) {
+      const errors = error.response.data.errors;
+      if (Array.isArray(errors)) {
+        return errors.join(", ");
+      }
+      if (typeof errors === "object") {
+        return Object.values(errors).flat().join(", ");
+      }
+    }
+    
+    // Message d'erreur unique
+    if (error.response?.data?.message) {
+      return error.response.data.message;
+    }
+    
+    // Erreur réseau
+    if (error.message) {
+      return error.message;
+    }
+    
+    return "Une erreur est survenue";
+  };
 
   useEffect(() => {
     fetchData();
@@ -237,7 +287,6 @@ export default function TrajetsPage() {
       ? (typeof trajet.remorque === 'string' ? trajet.remorque : trajet.remorque._id)
       : "";
 
-    // Convertir les dates ISO en format datetime-local (YYYY-MM-DDTHH:mm)
     const formatDateTimeLocal = (isoDate: string) => {
       const date = new Date(isoDate);
       const year = date.getFullYear();
@@ -281,6 +330,25 @@ export default function TrajetsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validation: dateArrivee doit être postérieure à dateDepart
+    if (new Date(formData.dateArrivee) <= new Date(formData.dateDepart)) {
+      toast.error("La date d'arrivée doit être postérieure à la date de départ", {
+        duration: 5000,
+      });
+      return;
+    }
+    
+    // Validation: kmArrivee doit être >= kmDepart si les deux sont fournis
+    if (formData.kmDepart !== undefined && formData.kmArrivee !== undefined) {
+      if (formData.kmArrivee < formData.kmDepart) {
+        toast.error("Le kilométrage d'arrivée doit être supérieur ou égal au kilométrage de départ", {
+          duration: 5000,
+        });
+        return;
+      }
+    }
+    
     setSubmitting(true);
 
     try {
@@ -297,41 +365,58 @@ export default function TrajetsPage() {
 
       if (editingTrajet) {
         await updateTrajet(editingTrajet._id, payload as any);
+        toast.success("Trajet modifié avec succès");
       } else {
         await createTrajet(payload as any);
+        toast.success("Trajet ajouté avec succès");
       }
       setIsModalOpen(false);
       fetchData();
     } catch (error: any) {
       console.error("Erreur lors de la sauvegarde:", error);
-      const message = error.response?.data?.message || "Erreur lors de la sauvegarde du trajet";
-      alert(message);
+      const errorMessage = getErrorMessage(error);
+      toast.error(errorMessage, {
+        duration: 5000,
+      });
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm("Êtes-vous sûr de vouloir supprimer ce trajet ?")) {
-      return;
-    }
+  const handleDeleteClick = (id: string) => {
+    setTrajetToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!trajetToDelete) return;
 
     try {
-      await deleteTrajet(id);
+      await deleteTrajet(trajetToDelete);
+      toast.success("Trajet supprimé avec succès");
+      setDeleteDialogOpen(false);
+      setTrajetToDelete(null);
       fetchData();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erreur lors de la suppression:", error);
-      alert("Erreur lors de la suppression du trajet");
+      const errorMessage = getErrorMessage(error);
+      toast.error(errorMessage, {
+        duration: 5000,
+      });
     }
   };
 
   const handleUpdateStatut = async (id: string, newStatut: TrajetBackend['statut']) => {
     try {
       await updateStatut(id, { statut: newStatut as any });
+      toast.success("Statut mis à jour avec succès");
       fetchData();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erreur lors de la mise à jour du statut:", error);
-      alert("Erreur lors de la mise à jour du statut");
+      const errorMessage = getErrorMessage(error);
+      toast.error(errorMessage, {
+        duration: 5000,
+      });
     }
   };
 
@@ -346,9 +431,13 @@ export default function TrajetsPage() {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-    } catch (error) {
+      toast.success("PDF téléchargé avec succès");
+    } catch (error: any) {
       console.error("Erreur lors du téléchargement du PDF:", error);
-      alert("Erreur lors du téléchargement du PDF");
+      const errorMessage = getErrorMessage(error);
+      toast.error(errorMessage, {
+        duration: 5000,
+      });
     }
   };
 
@@ -386,39 +475,33 @@ export default function TrajetsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gestion des Trajets</h1>
-          <p className="text-gray-600 mt-1">
-            {filteredTrajets.length} trajet(s) au total
-          </p>
-        </div>
-        <Button onClick={openCreateModal}>
-          <span className="mr-2">+</span> Nouveau trajet
-        </Button>
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Gestion des Trajets</h1>
+        <p className="text-gray-600 mt-1">
+          {filteredTrajets.length} trajet(s) au total
+        </p>
       </div>
 
-      {/* Filtres */}
-      <Card>
+ 
         <CardHeader>
-          <CardTitle className="text-lg">Filtres</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div>
-              <Label htmlFor="search">Rechercher</Label>
+        <CardContent className="flex flex-col gap-4">
+          <div className="flex items-center gap-4">
+            <Button onClick={openCreateModal}>
+              <Plus className="w-4 h-4 mr-2" />
+              Ajouter un trajet
+            </Button>
+            <div className="flex-1">
               <Input
-                id="search"
-                placeholder="Lieu, camion..."
+                placeholder="Rechercher par lieu, camion..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="mt-1"
+                className="max-w-md"
               />
             </div>
-            <div>
-              <Label htmlFor="statut-filter">Statut</Label>
+            <div className="sm:w-48">
               <Select value={selectedStatut} onValueChange={setSelectedStatut}>
-                <SelectTrigger className="mt-1">
+                <SelectTrigger>
                   <SelectValue placeholder="Tous les statuts" />
                 </SelectTrigger>
                 <SelectContent>
@@ -431,49 +514,42 @@ export default function TrajetsPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Label htmlFor="chauffeur-filter">Chauffeur</Label>
+            <div className="sm:w-48">
               <Select value={selectedChauffeur} onValueChange={setSelectedChauffeur}>
-                <SelectTrigger className="mt-1">
+                <SelectTrigger>
                   <SelectValue placeholder="Tous les chauffeurs" />
                 </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tous les chauffeurs</SelectItem>
-                    {chauffeurs.length > 0 ? (
-                      chauffeurs.map((chauffeur) => (
-                        <SelectItem key={chauffeur._id} value={chauffeur._id}>
-                          {chauffeur.prenom} {chauffeur.nom}
-                        </SelectItem>
-                      ))
-                    ) : (
-                      <SelectItem value="no-chauffeurs" disabled>Aucun chauffeur disponible</SelectItem>
-                    )}
-                  </SelectContent>
+                <SelectContent>
+                  <SelectItem value="all">Tous les chauffeurs</SelectItem>
+                  {chauffeurs.length > 0 ? (
+                    chauffeurs.map((chauffeur) => (
+                      <SelectItem key={chauffeur._id} value={chauffeur._id}>
+                        {chauffeur.prenom} {chauffeur.nom}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="no-chauffeurs" disabled>Aucun chauffeur disponible</SelectItem>
+                  )}
+                </SelectContent>
               </Select>
             </div>
-            <div>
-              <Label htmlFor="date-debut">Date début</Label>
+            <div className="sm:w-48">
               <Input
-                id="date-debut"
                 type="date"
                 value={dateDebut}
                 onChange={(e) => setDateDebut(e.target.value)}
-                className="mt-1"
+                placeholder="Date début"
               />
             </div>
-            <div>
-              <Label htmlFor="date-fin">Date fin</Label>
+            <div className="sm:w-48">
               <Input
-                id="date-fin"
                 type="date"
                 value={dateFin}
                 onChange={(e) => setDateFin(e.target.value)}
-                className="mt-1"
+                placeholder="Date fin"
               />
             </div>
-          </div>
-          {(selectedStatut !== "all" || selectedChauffeur !== "all" || dateDebut || dateFin || searchTerm) && (
-            <div className="mt-4">
+            {(selectedStatut !== "all" || selectedChauffeur !== "all" || dateDebut || dateFin || searchTerm) && (
               <Button
                 variant="outline"
                 onClick={() => {
@@ -484,12 +560,11 @@ export default function TrajetsPage() {
                   setSearchTerm("");
                 }}
               >
-                Réinitialiser les filtres
+                Réinitialiser
               </Button>
-            </div>
-          )}
+            )}
+          </div>
         </CardContent>
-      </Card>
 
       {/* Table */}
       <Card>
@@ -519,7 +594,7 @@ export default function TrajetsPage() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Statut
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Actions
                       </th>
                     </tr>
@@ -555,35 +630,39 @@ export default function TrajetsPage() {
                               {trajet.statut}
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <div className="flex justify-end gap-2">
+                          <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                            <div className="flex justify-center gap-2">
                               <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => openDetailModal(trajet)}
+                                title="Détails"
                               >
-                                Détails
+                                <Eye className="w-4 h-4" />
                               </Button>
                               <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => openEditModal(trajet)}
+                                title="Modifier"
                               >
-                                Modifier
+                                <Pencil className="w-4 h-4" />
                               </Button>
                               <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handleDownloadPDF(trajet._id)}
+                                title="Télécharger PDF"
                               >
                                 PDF
                               </Button>
                               <Button
                                 variant="destructive"
                                 size="sm"
-                                onClick={() => handleDelete(trajet._id)}
+                                onClick={() => handleDeleteClick(trajet._id)}
+                                title="Supprimer"
                               >
-                                Supprimer
+                                <Trash2 className="w-4 h-4" />
                               </Button>
                             </div>
                           </td>
@@ -596,28 +675,33 @@ export default function TrajetsPage() {
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="px-6 py-4 border-t flex items-center justify-between">
-                  <div className="text-sm text-gray-600">
-                    Page {currentPage} sur {totalPages}
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      disabled={currentPage === 1}
-                    >
-                      Précédent
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                      disabled={currentPage === totalPages}
-                    >
-                      Suivant
-                    </Button>
-                  </div>
+                <div className="px-6 py-4 border-t flex justify-center">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious
+                          onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                          disabled={currentPage === 1}
+                        />
+                      </PaginationItem>
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                        <PaginationItem key={page}>
+                          <PaginationLink
+                            onClick={() => setCurrentPage(page)}
+                            isActive={page === currentPage}
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      ))}
+                      <PaginationItem>
+                        <PaginationNext
+                          onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                          disabled={currentPage === totalPages}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
                 </div>
               )}
             </>
@@ -737,20 +821,30 @@ export default function TrajetsPage() {
                   <Input
                     id="lieuDepart"
                     required
+                    minLength={2}
+                    maxLength={200}
                     value={formData.lieuDepart}
                     onChange={(e) => setFormData({ ...formData, lieuDepart: e.target.value })}
                     placeholder="Ex: Casablanca"
                   />
+                  <p className="text-xs text-gray-500">
+                    Entre 2 et 200 caractères
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="lieuArrivee">Lieu d'arrivée *</Label>
                   <Input
                     id="lieuArrivee"
                     required
+                    minLength={2}
+                    maxLength={200}
                     value={formData.lieuArrivee}
                     onChange={(e) => setFormData({ ...formData, lieuArrivee: e.target.value })}
                     placeholder="Ex: Rabat"
                   />
+                  <p className="text-xs text-gray-500">
+                    Entre 2 et 200 caractères
+                  </p>
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4">
@@ -760,6 +854,7 @@ export default function TrajetsPage() {
                     id="kmDepart"
                     type="number"
                     min="0"
+                    step="1"
                     value={formData.kmDepart || ""}
                     onChange={(e) =>
                       setFormData({
@@ -768,6 +863,9 @@ export default function TrajetsPage() {
                       })
                     }
                   />
+                  <p className="text-xs text-gray-500">
+                    Nombre entier positif (optionnel)
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="kmArrivee">KM arrivée</Label>
@@ -775,6 +873,7 @@ export default function TrajetsPage() {
                     id="kmArrivee"
                     type="number"
                     min="0"
+                    step="1"
                     value={formData.kmArrivee || ""}
                     onChange={(e) =>
                       setFormData({
@@ -783,6 +882,9 @@ export default function TrajetsPage() {
                       })
                     }
                   />
+                  <p className="text-xs text-gray-500">
+                    Doit être ≥ KM départ (optionnel)
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="gasoilConsomme">Gasoil consommé (L)</Label>
@@ -790,6 +892,7 @@ export default function TrajetsPage() {
                     id="gasoilConsomme"
                     type="number"
                     min="0"
+                    step="0.01"
                     value={formData.gasoilConsomme || ""}
                     onChange={(e) =>
                       setFormData({
@@ -798,6 +901,9 @@ export default function TrajetsPage() {
                       })
                     }
                   />
+                  <p className="text-xs text-gray-500">
+                    Nombre positif (optionnel)
+                  </p>
                 </div>
               </div>
               <div className="space-y-2">
@@ -822,19 +928,27 @@ export default function TrajetsPage() {
                 <Label htmlFor="description">Description</Label>
                 <Input
                   id="description"
+                  maxLength={1000}
                   value={formData.description || ""}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="Description du trajet..."
                 />
+                <p className="text-xs text-gray-500">
+                  Maximum 1000 caractères
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="remarques">Remarques</Label>
                 <Input
                   id="remarques"
+                  maxLength={500}
                   value={formData.remarques || ""}
                   onChange={(e) => setFormData({ ...formData, remarques: e.target.value })}
                   placeholder="Remarques..."
                 />
+                <p className="text-xs text-gray-500">
+                  Maximum 500 caractères
+                </p>
               </div>
             </div>
             <DialogFooter>
@@ -1015,6 +1129,26 @@ export default function TrajetsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action est irréversible. Ce trajet sera définitivement supprimé.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setTrajetToDelete(null)}>
+              Annuler
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-red-600 hover:bg-red-700">
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

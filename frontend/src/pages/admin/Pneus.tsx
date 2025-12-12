@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Pencil, Trash2, Plus, RefreshCw, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -10,6 +12,24 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -112,7 +132,9 @@ export default function PneusPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCamion, setSelectedCamion] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 7;
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [pneuToDelete, setPneuToDelete] = useState<string | null>(null);
 
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -146,6 +168,34 @@ export default function PneusPage() {
   });
 
   const [submitting, setSubmitting] = useState(false);
+
+  // Fonction pour extraire le message d'erreur
+  const getErrorMessage = (error: any): string => {
+    if (!error) return "Une erreur est survenue";
+    
+    // Erreur de validation Yup avec plusieurs messages
+    if (error.response?.data?.errors) {
+      const errors = error.response.data.errors;
+      if (Array.isArray(errors)) {
+        return errors.join(", ");
+      }
+      if (typeof errors === "object") {
+        return Object.values(errors).flat().join(", ");
+      }
+    }
+    
+    // Message d'erreur unique
+    if (error.response?.data?.message) {
+      return error.response.data.message;
+    }
+    
+    // Erreur réseau
+    if (error.message) {
+      return error.message;
+    }
+    
+    return "Une erreur est survenue";
+  };
 
   useEffect(() => {
     fetchData();
@@ -186,8 +236,12 @@ export default function PneusPage() {
       setPneus((pneusData as any) || []);
       setFilteredPneus((pneusData as any) || []);
       setCamions(camionsData || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erreur lors du chargement:", error);
+      const errorMessage = getErrorMessage(error);
+      toast.error(`Erreur lors du chargement: ${errorMessage}`, {
+        duration: 5000,
+      });
       setPneus([]);
       setFilteredPneus([]);
       setCamions([]);
@@ -243,9 +297,12 @@ export default function PneusPage() {
       const usureData = await calculerUsure(pneu._id);
       setPneuUsure(usureData as any);
       setIsUsureModalOpen(true);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erreur lors du calcul de l'usure:", error);
-      alert("Erreur lors du calcul de l'usure");
+      const errorMessage = getErrorMessage(error);
+      toast.error(errorMessage, {
+        duration: 5000,
+      });
     } finally {
       setCalculatingUsure(false);
     }
@@ -253,20 +310,33 @@ export default function PneusPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validation: kmMax doit être supérieur à kmPose
+    if (formData.kmMax <= formData.kmPose) {
+      toast.error("Le kilométrage maximum doit être supérieur au kilométrage de pose", {
+        duration: 5000,
+      });
+      return;
+    }
+    
     setSubmitting(true);
 
     try {
       if (editingPneu) {
         await updatePneu(editingPneu._id, formData as any);
+        toast.success("Pneu modifié avec succès");
       } else {
         await createPneu(formData as any);
+        toast.success("Pneu ajouté avec succès");
       }
       setIsModalOpen(false);
       fetchData();
     } catch (error: any) {
       console.error("Erreur lors de la sauvegarde:", error);
-      const message = error.response?.data?.message || "Erreur lors de la sauvegarde du pneu";
-      alert(message);
+      const errorMessage = getErrorMessage(error);
+      toast.error(errorMessage, {
+        duration: 5000,
+      });
     } finally {
       setSubmitting(false);
     }
@@ -283,49 +353,42 @@ export default function PneusPage() {
         nouveauPneu: remplacementData,
       };
       await remplacerPneu(pneuToReplace._id, payload as any);
+      toast.success("Pneu remplacé avec succès");
       setIsRemplacementModalOpen(false);
       setPneuToReplace(null);
       fetchData();
     } catch (error: any) {
       console.error("Erreur lors du remplacement:", error);
-      const message = error.response?.data?.message || "Erreur lors du remplacement du pneu";
-      alert(message);
+      const errorMessage = getErrorMessage(error);
+      toast.error(errorMessage, {
+        duration: 5000,
+      });
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm("Êtes-vous sûr de vouloir supprimer ce pneu ?")) {
-      return;
-    }
+  const handleDeleteClick = (id: string) => {
+    setPneuToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!pneuToDelete) return;
 
     try {
-      await deletePneu(id);
+      await deletePneu(pneuToDelete);
+      toast.success("Pneu supprimé avec succès");
+      setDeleteDialogOpen(false);
+      setPneuToDelete(null);
       fetchData();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erreur lors de la suppression:", error);
-      alert("Erreur lors de la suppression du pneu");
+      const errorMessage = getErrorMessage(error);
+      toast.error(errorMessage, {
+        duration: 5000,
+      });
     }
-  };
-
-  const getUsurePercentage = (pneu: PneuBackend): number => {
-    if (typeof pneu.camion === 'object' && pneu.camion.kilometrage) {
-      const kmActuel = pneu.camion.kilometrage;
-      const kmParcouru = kmActuel - pneu.kmPose;
-      const kmTotal = pneu.kmMax - pneu.kmPose;
-      if (kmTotal > 0) {
-        return Math.min(100, Math.round((kmParcouru / kmTotal) * 100));
-      }
-    }
-    return 0;
-  };
-
-  const getUsureColor = (percentage: number): string => {
-    if (percentage >= 100) return "bg-red-600";
-    if (percentage >= 80) return "bg-orange-500";
-    if (percentage >= 60) return "bg-yellow-500";
-    return "bg-green-500";
   };
 
   const getStatutColor = (statut: string): string => {
@@ -351,72 +414,64 @@ export default function PneusPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gestion des Pneus</h1>
-          <p className="text-gray-600 mt-1">
-            {filteredPneus.length} pneu(s) au total
-          </p>
-        </div>
-        <Button onClick={openCreateModal}>
-          <span className="mr-2">+</span> Ajouter un pneu
-        </Button>
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Gestion des Pneus</h1>
+        <p className="text-gray-600 mt-1">
+          {filteredPneus.length} pneu(s) au total
+        </p>
       </div>
 
-      {/* Search */}
-      <Card>
+   
         <CardHeader>
-          <CardTitle className="text-lg">Rechercher et Filtrer</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <Label htmlFor="search">Rechercher</Label>
-              <Input
-                id="search"
-                placeholder="Rechercher par référence ou matricule camion..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="mt-1"
-              />
-            </div>
-            <div className="sm:w-64">
-              <Label htmlFor="camion-filter">Filtrer par camion</Label>
-              <Select
-                value={selectedCamion}
-                onValueChange={(value) => {
-                  setSelectedCamion(value);
-                }}
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Tous les camions" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tous les camions</SelectItem>
-                  {camions.map((camion) => (
-                    <SelectItem key={camion._id} value={camion._id}>
-                      {camion.matricule} {camion.marque && `- ${camion.marque}`}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            {(selectedCamion !== "all" || searchTerm) && (
-              <div className="flex items-end">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setSelectedCamion("all");
-                    setSearchTerm("");
-                  }}
-                >
-                  Réinitialiser
-                </Button>
-              </div>
-            )}
+        <CardContent className="flex items-center gap-4">
+          <Button onClick={openCreateModal}>
+            <Plus className="w-4 h-4 mr-2" />
+            Ajouter un pneu
+          </Button>
+          
+          <div className="flex-1">
+            <Input
+              placeholder="Rechercher par référence ou matricule camion..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="max-w-md"
+            />
           </div>
+
+          <div className="flex-1">
+            <Select
+              value={selectedCamion}
+              onValueChange={(value) => {
+                setSelectedCamion(value);
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Tous les camions" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous les camions</SelectItem>
+                {camions.map((camion) => (
+                  <SelectItem key={camion._id} value={camion._id}>
+                    {camion.matricule} {camion.marque && `- ${camion.marque}`}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          {(selectedCamion !== "all" || searchTerm) && (
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSelectedCamion("all");
+                setSearchTerm("");
+              }}
+            >
+              Réinitialiser
+            </Button>
+          )}
         </CardContent>
-      </Card>
 
       {/* Table */}
       <Card>
@@ -441,22 +496,18 @@ export default function PneusPage() {
                         Position
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Usure
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Statut
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         KM Pose / Max
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Actions
                       </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {currentPneus.map((pneu) => {
-                      const usurePercentage = getUsurePercentage(pneu);
                       const camionInfo = typeof pneu.camion === 'object' ? pneu.camion : null;
                       const camionMatricule = camionInfo?.matricule || 'N/A';
 
@@ -472,19 +523,6 @@ export default function PneusPage() {
                             {pneu.position}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center gap-2">
-                              <div className="w-24 bg-gray-200 rounded-full h-2">
-                                <div
-                                  className={`h-2 rounded-full ${getUsureColor(usurePercentage)}`}
-                                  style={{ width: `${Math.min(100, usurePercentage)}%` }}
-                                ></div>
-                              </div>
-                              <span className="text-sm text-gray-600 w-12">
-                                {usurePercentage}%
-                              </span>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
                             <span
                               className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatutColor(pneu.statut)}`}
                             >
@@ -494,22 +532,24 @@ export default function PneusPage() {
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                             {pneu.kmPose.toLocaleString()} / {pneu.kmMax.toLocaleString()} km
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <div className="flex justify-end gap-2">
+                          <td className="px-6 py-4 whitespace-nowrap text-center">
+                            <div className="flex justify-center gap-2">
                               <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => openUsureModal(pneu)}
                                 disabled={calculatingUsure}
+                                title="Détails de l'usure"
                               >
-                                Usure
+                                <Eye className="w-4 h-4" />
                               </Button>
                               <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => openEditModal(pneu)}
+                                title="Modifier"
                               >
-                                Modifier
+                                <Pencil className="w-4 h-4" />
                               </Button>
                               {pneu.statut !== 'remplacé' && (
                                 <Button
@@ -517,16 +557,18 @@ export default function PneusPage() {
                                   size="sm"
                                   onClick={() => openRemplacementModal(pneu)}
                                   className="text-orange-600 hover:text-orange-700"
+                                  title="Remplacer"
                                 >
-                                  Remplacer
+                                  <RefreshCw className="w-4 h-4" />
                                 </Button>
                               )}
                               <Button
                                 variant="destructive"
                                 size="sm"
-                                onClick={() => handleDelete(pneu._id)}
+                                onClick={() => handleDeleteClick(pneu._id)}
+                                title="Supprimer"
                               >
-                                Supprimer
+                                <Trash2 className="w-4 h-4" />
                               </Button>
                             </div>
                           </td>
@@ -539,28 +581,33 @@ export default function PneusPage() {
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="px-6 py-4 border-t flex items-center justify-between">
-                  <div className="text-sm text-gray-600">
-                    Page {currentPage} sur {totalPages}
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      disabled={currentPage === 1}
-                    >
-                      Précédent
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                      disabled={currentPage === totalPages}
-                    >
-                      Suivant
-                    </Button>
-                  </div>
+                <div className="px-6 py-4 border-t flex justify-center">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious
+                          onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                          disabled={currentPage === 1}
+                        />
+                      </PaginationItem>
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                        <PaginationItem key={page}>
+                          <PaginationLink
+                            onClick={() => setCurrentPage(page)}
+                            isActive={page === currentPage}
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      ))}
+                      <PaginationItem>
+                        <PaginationNext
+                          onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                          disabled={currentPage === totalPages}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
                 </div>
               )}
             </>
@@ -594,12 +641,17 @@ export default function PneusPage() {
                 <Input
                   id="reference"
                   required
+                  minLength={3}
+                  maxLength={50}
                   value={formData.reference}
                   onChange={(e) =>
                     setFormData({ ...formData, reference: e.target.value })
                   }
                   placeholder="Ex: MICHELIN-12345"
                 />
+                <p className="text-xs text-gray-500">
+                  Entre 3 et 50 caractères
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="camion">Camion *</Label>
@@ -622,26 +674,48 @@ export default function PneusPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="position">Position *</Label>
-                <Select
-                  value={formData.position}
-                  onValueChange={(value: any) =>
-                    setFormData({ ...formData, position: value })
-                  }
-                  required
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {POSITIONS.map((pos) => (
-                      <SelectItem key={pos} value={pos}>
-                        {pos}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="position">Position *</Label>
+                  <Select
+                    value={formData.position}
+                    onValueChange={(value: any) =>
+                      setFormData({ ...formData, position: value })
+                    }
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {POSITIONS.map((pos) => (
+                        <SelectItem key={pos} value={pos}>
+                          {pos}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="statut">Statut</Label>
+                  <Select
+                    value={formData.statut}
+                    onValueChange={(value: any) =>
+                      setFormData({ ...formData, statut: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {STATUTS.map((statut) => (
+                        <SelectItem key={statut} value={statut}>
+                          {statut}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="kmPose">KM de pose *</Label>
@@ -650,6 +724,7 @@ export default function PneusPage() {
                   type="number"
                   required
                   min="0"
+                  step="1"
                   value={formData.kmPose}
                   onChange={(e) =>
                     setFormData({
@@ -659,6 +734,9 @@ export default function PneusPage() {
                   }
                   placeholder="Ex: 50000"
                 />
+                <p className="text-xs text-gray-500">
+                  Nombre entier positif
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="kmMax">KM maximum *</Label>
@@ -667,6 +745,7 @@ export default function PneusPage() {
                   type="number"
                   required
                   min="1000"
+                  step="1"
                   value={formData.kmMax}
                   onChange={(e) =>
                     setFormData({
@@ -676,6 +755,9 @@ export default function PneusPage() {
                   }
                   placeholder="Ex: 80000"
                 />
+                <p className="text-xs text-gray-500">
+                  Minimum 1000 km, doit être supérieur au KM de pose
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="prix">Prix (DH)</Label>
@@ -683,6 +765,7 @@ export default function PneusPage() {
                   id="prix"
                   type="number"
                   min="0"
+                  step="0.01"
                   value={formData.prix || ""}
                   onChange={(e) =>
                     setFormData({
@@ -692,26 +775,9 @@ export default function PneusPage() {
                   }
                   placeholder="Ex: 2500"
                 />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="statut">Statut</Label>
-                <Select
-                  value={formData.statut}
-                  onValueChange={(value: any) =>
-                    setFormData({ ...formData, statut: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {STATUTS.map((statut) => (
-                      <SelectItem key={statut} value={statut}>
-                        {statut}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <p className="text-xs text-gray-500">
+                  Prix positif (optionnel)
+                </p>
               </div>
             </div>
             <DialogFooter>
@@ -747,12 +813,17 @@ export default function PneusPage() {
                 <Input
                   id="remp-reference"
                   required
+                  minLength={3}
+                  maxLength={50}
                   value={remplacementData.reference}
                   onChange={(e) =>
                     setRemplacementData({ ...remplacementData, reference: e.target.value })
                   }
                   placeholder="Ex: MICHELIN-67890"
                 />
+                <p className="text-xs text-gray-500">
+                  Entre 3 et 50 caractères
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="remp-kmPose">KM de pose</Label>
@@ -760,6 +831,7 @@ export default function PneusPage() {
                   id="remp-kmPose"
                   type="number"
                   min="0"
+                  step="1"
                   value={remplacementData.kmPose || ""}
                   onChange={(e) =>
                     setRemplacementData({
@@ -769,6 +841,9 @@ export default function PneusPage() {
                   }
                   placeholder="KM actuel du camion par défaut"
                 />
+                <p className="text-xs text-gray-500">
+                  Nombre entier positif (optionnel)
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="remp-kmMax">KM maximum</Label>
@@ -776,6 +851,7 @@ export default function PneusPage() {
                   id="remp-kmMax"
                   type="number"
                   min="1000"
+                  step="1"
                   value={remplacementData.kmMax || ""}
                   onChange={(e) =>
                     setRemplacementData({
@@ -785,6 +861,9 @@ export default function PneusPage() {
                   }
                   placeholder="Ex: 80000"
                 />
+                <p className="text-xs text-gray-500">
+                  Minimum 1000 km (défaut: 80000)
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="remp-prix">Prix (DH)</Label>
@@ -792,6 +871,7 @@ export default function PneusPage() {
                   id="remp-prix"
                   type="number"
                   min="0"
+                  step="0.01"
                   value={remplacementData.prix || ""}
                   onChange={(e) =>
                     setRemplacementData({
@@ -801,6 +881,9 @@ export default function PneusPage() {
                   }
                   placeholder="Ex: 2500"
                 />
+                <p className="text-xs text-gray-500">
+                  Prix positif (optionnel)
+                </p>
               </div>
             </div>
             <DialogFooter>
@@ -831,57 +914,76 @@ export default function PneusPage() {
           </DialogHeader>
           {pneuUsure && (
             <div className="space-y-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Référence</Label>
-                  <p className="text-sm font-medium">{pneuUsure.pneu.reference}</p>
-                </div>
-                <div>
-                  <Label>Position</Label>
-                  <p className="text-sm font-medium">{pneuUsure.pneu.position}</p>
-                </div>
-                <div>
-                  <Label>Camion</Label>
-                  <p className="text-sm font-medium">{pneuUsure.camion.matricule}</p>
-                </div>
-                <div>
-                  <Label>KM actuel</Label>
-                  <p className="text-sm font-medium">{pneuUsure.camion.kilometrageActuel.toLocaleString()} km</p>
-                </div>
+              <div className="grid grid-cols-[1fr_2fr] gap-4 items-center">
+                <Label>Référence</Label>
+                <p className="text-sm font-medium">{pneuUsure.pneu.reference}</p>
+              </div>
+              <div className="grid grid-cols-[1fr_2fr] gap-4 items-center">
+                <Label>Position</Label>
+                <p className="text-sm font-medium">{pneuUsure.pneu.position}</p>
+              </div>
+              <div className="grid grid-cols-[1fr_2fr] gap-4 items-center">
+                <Label>Camion</Label>
+                <p className="text-sm font-medium">{pneuUsure.camion.matricule}</p>
+              </div>
+              <div className="grid grid-cols-[1fr_2fr] gap-4 items-center">
+                <Label>KM actuel</Label>
+                <p className="text-sm font-medium">{pneuUsure.camion.kilometrageActuel.toLocaleString()} km</p>
               </div>
 
               <div className="space-y-2">
-                <Label>Pourcentage d'usure</Label>
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 bg-gray-200 rounded-full h-4">
-                    <div
-                      className={`h-4 rounded-full ${getUsureColor(pneuUsure.usure.pourcentageUsure)}`}
-                      style={{ width: `${Math.min(100, pneuUsure.usure.pourcentageUsure)}%` }}
-                    ></div>
+                <div className="grid grid-cols-[1fr_2fr] gap-4 items-center">
+                  <Label>Pourcentage d'usure</Label>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1">
+                      <div className="relative h-4 w-full overflow-hidden rounded-full bg-gray-200">
+                        <div
+                          className={`h-full transition-all ${
+                            pneuUsure.usure.pourcentageUsure >= 100 ? "bg-red-600" :
+                            pneuUsure.usure.pourcentageUsure >= 80 ? "bg-orange-500" :
+                            pneuUsure.usure.pourcentageUsure >= 60 ? "bg-yellow-500" :
+                            "bg-green-500"
+                          }`}
+                          style={{ width: `${Math.min(100, pneuUsure.usure.pourcentageUsure)}%` }}
+                        />
+                      </div>
+                    </div>
+                    <span className={`text-sm font-medium w-16 text-right ${
+                      pneuUsure.usure.pourcentageUsure >= 100 ? "text-red-600" :
+                      pneuUsure.usure.pourcentageUsure >= 80 ? "text-orange-600" :
+                      pneuUsure.usure.pourcentageUsure >= 60 ? "text-yellow-600" :
+                      "text-green-600"
+                    }`}>
+                      {pneuUsure.usure.pourcentageUsure}%
+                    </span>
                   </div>
-                  <span className="text-sm font-medium w-16 text-right">
-                    {pneuUsure.usure.pourcentageUsure}%
-                  </span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>KM parcouru</Label>
-                  <p className="text-sm font-medium">{pneuUsure.usure.kmParcouru.toLocaleString()} km</p>
-                </div>
-                <div>
-                  <Label>KM restant</Label>
-                  <p className="text-sm font-medium">{pneuUsure.usure.kmRestant.toLocaleString()} km</p>
-                </div>
-                <div>
-                  <Label>KM de pose</Label>
-                  <p className="text-sm font-medium">{pneuUsure.usure.kmPose.toLocaleString()} km</p>
-                </div>
-                <div>
-                  <Label>KM maximum</Label>
-                  <p className="text-sm font-medium">{pneuUsure.usure.kmMax.toLocaleString()} km</p>
-                </div>
+              <div className="grid grid-cols-[1fr_2fr] gap-4 items-center">
+                <Label>KM parcouru</Label>
+                <p className="text-sm font-medium">{pneuUsure.usure.kmParcouru.toLocaleString()} km</p>
+              </div>
+              <div className="grid grid-cols-[1fr_2fr] gap-4 items-center">
+                <Label>KM restant</Label>
+                <p className="text-sm font-medium">{pneuUsure.usure.kmRestant.toLocaleString()} km</p>
+              </div>
+              <div className="grid grid-cols-[1fr_2fr] gap-4 items-center">
+                <Label>KM de pose</Label>
+                <p className="text-sm font-medium">{pneuUsure.usure.kmPose.toLocaleString()} km</p>
+              </div>
+              <div className="grid grid-cols-[1fr_2fr] gap-4 items-center">
+                <Label>KM maximum</Label>
+                <p className="text-sm font-medium">{pneuUsure.usure.kmMax.toLocaleString()} km</p>
+              </div>
+
+              <div className="grid grid-cols-[1fr_2fr] gap-4 items-center">
+                <Label>Statut</Label>
+                <p className="text-sm font-medium">
+                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatutColor(pneuUsure.pneu.statut)}`}>
+                    {pneuUsure.pneu.statut}
+                  </span>
+                </p>
               </div>
 
               {pneuUsure.alerte && (
@@ -890,22 +992,30 @@ export default function PneusPage() {
                   <AlertDescription>{pneuUsure.alerte}</AlertDescription>
                 </Alert>
               )}
-
-              <div>
-                <Label>Statut</Label>
-                <p className="text-sm font-medium">
-                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatutColor(pneuUsure.pneu.statut)}`}>
-                    {pneuUsure.pneu.statut}
-                  </span>
-                </p>
-              </div>
             </div>
           )}
-          <DialogFooter>
-            <Button onClick={() => setIsUsureModalOpen(false)}>Fermer</Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action est irréversible. Ce pneu sera définitivement supprimé.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPneuToDelete(null)}>
+              Annuler
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-red-600 hover:bg-red-700">
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

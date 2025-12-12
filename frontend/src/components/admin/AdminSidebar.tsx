@@ -3,10 +3,10 @@ import {
   LayoutDashboard, 
   Truck, 
   Van, 
-  Settings, 
   Map, 
   Wrench, 
-  Users 
+  Users,
+  ShipWheel
 } from "lucide-react";
 
 type Props = {
@@ -18,7 +18,7 @@ const menuItems = [
   { path: "/admin/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { path: "/admin/camions", icon: Van, label: "Camions" },
   { path: "/admin/remorques", icon: Truck, label: "Remorques" },
-  { path: "/admin/pneus", icon: Settings, label: "Pneus" },
+  { path: "/admin/pneus", icon: ShipWheel, label: "Pneus" },
   { path: "/admin/trajets", icon: Map, label: "Trajets" },
   { path: "/admin/maintenances", icon: Wrench, label: "Maintenances" },
   { path: "/admin/utilisateurs", icon: Users, label: "Utilisateurs" },
