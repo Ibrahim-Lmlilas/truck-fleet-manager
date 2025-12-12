@@ -10,6 +10,7 @@ import AdminRemorques from "../pages/admin/Remorques";
 import AdminPneus from "../pages/admin/Pneus";
 import AdminTrajets from "../pages/admin/Trajets";
 import AdminMaintenances from "../pages/admin/Maintenances";
+import AdminUtilisateurs from "../pages/admin/Utilisateurs";
 import ChauffeurDashboard from "../pages/chauffeur/Dashboard";
 import AdminLayout from "../layouts/AdminLayout";
 import ChauffeurLayout from "../layouts/ChauffeurLayout";
@@ -60,6 +61,7 @@ export default function AppRoutes() {
             <Route path="pneus" element={<AdminPneus />} />
             <Route path="trajets" element={<AdminTrajets />} />
             <Route path="maintenances" element={<AdminMaintenances />} />
+            <Route path="utilisateurs" element={<AdminUtilisateurs />} />
             {/* Futures routes admin */}
             {/* <Route path="trajets" element={<AdminTrajets />} /> */}
             {/* <Route path="maintenances" element={<AdminMaintenances />} /> */}

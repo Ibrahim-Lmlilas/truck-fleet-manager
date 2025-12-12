@@ -17,7 +17,6 @@ const trajetSchema = new mongoose.Schema({
     remorque: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Remorque',
-        required: [true, 'La remorque est obligatoire']
     },
 
     dateDepart: {

@@ -24,12 +24,12 @@ import {
   updateTrajet,
   deleteTrajet,
   updateStatut,
-  updateKmEtGasoil,
   getTrajetById,
   getTrajetPDF,
 } from "@/services/trajet.service";
 import { getCamions, type Camion } from "@/services/camion.service";
 import { getRemorques, type Remorque } from "@/services/remorque.service";
+import { getChauffeurs } from "@/services/user.service";
 
 // Types locaux pour les données réelles du backend
 type ChauffeurInfo = {
@@ -76,7 +76,7 @@ type TrajetBackend = {
 type TrajetPayloadBackend = {
   chauffeur: string;
   camion: string;
-  remorque: string;
+  remorque?: string;
   dateDepart: string;
   dateArrivee: string;
   lieuDepart: string;
@@ -140,10 +140,11 @@ export default function TrajetsPage() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [trajetsData, camionsData, remorquesData] = await Promise.all([
+      const [trajetsData, camionsData, remorquesData, chauffeursData] = await Promise.all([
         getTrajets(),
         getCamions(),
         getRemorques(),
+        getChauffeurs(),
       ]);
       
       const trajetsList = (trajetsData as any) || [];
@@ -152,20 +153,22 @@ export default function TrajetsPage() {
       setCamions(camionsData || []);
       setRemorques(remorquesData || []);
 
-      // Extraire les chauffeurs uniques depuis les trajets
-      const chauffeursSet = new Map<string, ChauffeurInfo>();
-      trajetsList.forEach((trajet: TrajetBackend) => {
-        if (typeof trajet.chauffeur === 'object' && trajet.chauffeur._id) {
-          chauffeursSet.set(trajet.chauffeur._id, trajet.chauffeur);
-        }
-      });
-      setChauffeurs(Array.from(chauffeursSet.values()));
+      // Utiliser les chauffeurs récupérés depuis l'API
+      const chauffeursList = (chauffeursData as any) || [];
+      const chauffeursFormatted: ChauffeurInfo[] = chauffeursList.map((chauffeur: any) => ({
+        _id: chauffeur.id || chauffeur._id,
+        nom: chauffeur.nom,
+        prenom: chauffeur.prenom,
+        email: chauffeur.email,
+      }));
+      setChauffeurs(chauffeursFormatted);
     } catch (error) {
       console.error("Erreur lors du chargement:", error);
       setTrajets([]);
       setFilteredTrajets([]);
       setCamions([]);
       setRemorques([]);
+      setChauffeurs([]);
     } finally {
       setLoading(false);
     }
@@ -230,7 +233,9 @@ export default function TrajetsPage() {
     setEditingTrajet(trajet);
     const chauffeurId = typeof trajet.chauffeur === 'string' ? trajet.chauffeur : trajet.chauffeur._id;
     const camionId = typeof trajet.camion === 'string' ? trajet.camion : trajet.camion._id;
-    const remorqueId = typeof trajet.remorque === 'string' ? trajet.remorque : trajet.remorque._id;
+    const remorqueId = trajet.remorque 
+      ? (typeof trajet.remorque === 'string' ? trajet.remorque : trajet.remorque._id)
+      : "";
 
     // Convertir les dates ISO en format datetime-local (YYYY-MM-DDTHH:mm)
     const formatDateTimeLocal = (isoDate: string) => {
@@ -279,11 +284,16 @@ export default function TrajetsPage() {
     setSubmitting(true);
 
     try {
-      const payload = {
+      const payload: any = {
         ...formData,
         dateDepart: new Date(formData.dateDepart).toISOString(),
         dateArrivee: new Date(formData.dateArrivee).toISOString(),
       };
+      
+      // Ne pas envoyer remorque si elle est vide
+      if (!payload.remorque || payload.remorque === "") {
+        delete payload.remorque;
+      }
 
       if (editingTrajet) {
         await updateTrajet(editingTrajet._id, payload as any);
@@ -427,14 +437,18 @@ export default function TrajetsPage() {
                 <SelectTrigger className="mt-1">
                   <SelectValue placeholder="Tous les chauffeurs" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tous les chauffeurs</SelectItem>
-                  {chauffeurs.map((chauffeur) => (
-                    <SelectItem key={chauffeur._id} value={chauffeur._id}>
-                      {chauffeur.prenom} {chauffeur.nom}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
+                  <SelectContent>
+                    <SelectItem value="all">Tous les chauffeurs</SelectItem>
+                    {chauffeurs.length > 0 ? (
+                      chauffeurs.map((chauffeur) => (
+                        <SelectItem key={chauffeur._id} value={chauffeur._id}>
+                          {chauffeur.prenom} {chauffeur.nom}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="no-chauffeurs" disabled>Aucun chauffeur disponible</SelectItem>
+                    )}
+                  </SelectContent>
               </Select>
             </div>
             <div>
@@ -644,11 +658,15 @@ export default function TrajetsPage() {
                       <SelectValue placeholder="Sélectionner un chauffeur" />
                     </SelectTrigger>
                     <SelectContent>
-                      {chauffeurs.map((chauffeur) => (
-                        <SelectItem key={chauffeur._id} value={chauffeur._id}>
-                          {chauffeur.prenom} {chauffeur.nom}
-                        </SelectItem>
-                      ))}
+                      {chauffeurs.length > 0 ? (
+                        chauffeurs.map((chauffeur) => (
+                          <SelectItem key={chauffeur._id} value={chauffeur._id}>
+                            {chauffeur.prenom} {chauffeur.nom}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="no-chauffeurs" disabled>Aucun chauffeur disponible</SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -673,16 +691,16 @@ export default function TrajetsPage() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="remorque">Remorque *</Label>
+                <Label htmlFor="remorque">Remorque (optionnel)</Label>
                 <Select
-                  value={formData.remorque}
-                  onValueChange={(value) => setFormData({ ...formData, remorque: value })}
-                  required
+                  value={formData.remorque || "none"}
+                  onValueChange={(value) => setFormData({ ...formData, remorque: value === "none" ? "" : value })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner une remorque" />
+                    <SelectValue placeholder="Sélectionner une remorque (optionnel)" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="none">Aucune remorque</SelectItem>
                     {remorques.map((remorque) => (
                       <SelectItem key={remorque._id} value={remorque._id}>
                         {remorque.matricule} {remorque.type && `- ${remorque.type}`}

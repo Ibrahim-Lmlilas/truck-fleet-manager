@@ -88,13 +88,15 @@ const createTrajet = async (req, res, next) => {
             });
         }
 
-        // Vérifier si la remorque existe
-        const remorque = await Remorque.findById(req.body.remorque);
-        if (!remorque) {
-            return res.status(404).json({
-                success: false,
-                message: 'Remorque non trouvée'
-            });
+        // Vérifier si la remorque existe (si fournie)
+        if (req.body.remorque) {
+            const remorque = await Remorque.findById(req.body.remorque);
+            if (!remorque) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Remorque non trouvée'
+                });
+            }
         }
 
         // Vérifier que la date d'arrivée est après la date de départ
