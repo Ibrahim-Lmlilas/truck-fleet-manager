@@ -4,6 +4,7 @@ import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
 import NotFound from "../pages/NotFound";
 import Unauthorized from "../pages/Unauthorized";
+import AccountPending from "../pages/AccountPending";
 import AdminDashboard from "../pages/admin/Dashboard";
 import AdminCamions from "../pages/admin/Camions";
 import AdminRemorques from "../pages/admin/Remorques";
@@ -36,6 +37,11 @@ function RoleBasedRedirect() {
     return <Navigate to="/admin/dashboard" replace />;
   }
 
+  // Si chauffeur inactif, rediriger vers la page d'attente
+  if (user.role === "chauffeur" && user.isActive === false) {
+    return <Navigate to="/account-pending" replace />;
+  }
+
   return <Navigate to="/chauffeur/dashboard" replace />;
 }
 
@@ -47,6 +53,7 @@ export default function AppRoutes() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
+        <Route path="/account-pending" element={<AccountPending />} />
 
         {/* Routes Admin avec Protection */}
         <Route

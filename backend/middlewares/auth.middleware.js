@@ -33,12 +33,6 @@ const protect = async (req, res, next) => {
                     message: 'Utilisateur non trouvé'
                 });
             }
-            if (!user.isActive) {
-                return res.status(403).json({
-                    success: false,
-                    message: 'Compte désactivé'
-                });
-            }
             req.user = user;
             req.token = token; // Sauvegarder le token pour l'utiliser dans logout
             next();
@@ -74,6 +68,14 @@ const authorize = (...roles) => {
             });
         }
 
+        // Vérifier que les chauffeurs sont actifs
+        if (req.user.role === 'chauffeur' && !req.user.isActive) {
+            return res.status(403).json({
+                success: false,
+                message: 'Compte en attente d\'approbation par l\'administrateur'
+            });
+        }
+
         next();
     };
 };
@@ -90,6 +92,14 @@ const isAdmin = (req, res, next) => {
         return res.status(403).json({
             success: false,
             message: 'Accès refusé - Admin seulement'
+        });
+    }
+
+    // Les admins doivent toujours être actifs
+    if (!req.user.isActive) {
+        return res.status(403).json({
+            success: false,
+            message: 'Compte admin désactivé'
         });
     }
 
@@ -111,6 +121,32 @@ const isChauffeur = (req, res, next) => {
         });
     }
 
+    // Vérifier que le compte chauffeur est actif
+    if (!req.user.isActive) {
+        return res.status(403).json({
+            success: false,
+            message: 'Compte en attente d\'approbation par l\'administrateur'
+        });
+    }
+
+    next();
+};
+
+const requireActive = (req, res, next) => {
+    if (!req.user) {
+        return res.status(401).json({
+            success: false,
+            message: 'Non authentifié'
+        });
+    }
+
+    if (!req.user.isActive) {
+        return res.status(403).json({
+            success: false,
+            message: 'Compte en attente d\'approbation'
+        });
+    }
+
     next();
 };
 
@@ -118,5 +154,6 @@ module.exports = {
   protect,
   authorize,
   isAdmin,
-  isChauffeur
+  isChauffeur,
+  requireActive
 };

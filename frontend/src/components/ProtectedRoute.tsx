@@ -38,6 +38,11 @@ export default function ProtectedRoute({ allowedRoles, redirectTo = "/login" }: 
     return <Navigate to={redirectTo} replace />;
   }
 
+  // Vérifier si le compte est actif (sauf pour les admins qui sont toujours actifs)
+  if (user.role === "chauffeur" && user.isActive === false) {
+    return <Navigate to="/account-pending" replace />;
+  }
+
   // Si des rôles sont spécifiés et l'utilisateur n'a pas le bon rôle
   if (allowedRoles && allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
     return <Navigate to="/unauthorized" replace />;
