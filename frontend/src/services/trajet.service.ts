@@ -48,7 +48,7 @@ export const updateStatut = async (
 
 export const updateKmEtGasoil = async (
   id: string,
-  payload: { kmArrivee?: number; gasoil?: number }
+  payload: { kmDepart?: number; kmArrivee?: number; gasoilConsomme?: number }
 ): Promise<Trajet> => {
   const { data } = await apiClient.patch<{ success: boolean; data: Trajet }>(`/trajets/${id}/km-gasoil`, payload);
   return data.data;

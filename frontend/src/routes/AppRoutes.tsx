@@ -13,6 +13,7 @@ import AdminTrajets from "../pages/admin/Trajets";
 import AdminMaintenances from "../pages/admin/Maintenances";
 import AdminUtilisateurs from "../pages/admin/Utilisateurs";
 import ChauffeurDashboard from "../pages/chauffeur/Dashboard";
+import ChauffeurTrajets from "../pages/chauffeur/Trajets";
 import AdminLayout from "../layouts/AdminLayout";
 import ChauffeurLayout from "../layouts/ChauffeurLayout";
 import ProtectedRoute from "../components/ProtectedRoute";
@@ -84,8 +85,7 @@ export default function AppRoutes() {
           <Route element={<ChauffeurLayout />}>
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<ChauffeurDashboard />} />
-            {/* Futures routes chauffeur */}
-            {/* <Route path="trajets" element={<ChauffeurTrajets />} /> */}
+            <Route path="trajets" element={<ChauffeurTrajets />} />
           </Route>
         </Route>
 
