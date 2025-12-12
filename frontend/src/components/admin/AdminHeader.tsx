@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { User, LogOut } from "lucide-react";
 
 type Props = {
   onMenuClick: () => void;
@@ -29,12 +30,12 @@ export default function AdminHeader({ onMenuClick }: Props) {
 
   return (
     <>
-      <header className="bg-white border-b shadow-sm">
+      <header className="header-container">
         <div className="flex items-center justify-between px-4 py-3 sm:px-6">
           <div className="flex items-center space-x-3">
             <button
               onClick={onMenuClick}
-              className="text-gray-600 hover:text-gray-900 lg:hidden"
+              className="text-gray-700 hover:text-gray-900 lg:hidden"
             >
               <svg
                 className="w-6 h-6"
@@ -50,85 +51,84 @@ export default function AdminHeader({ onMenuClick }: Props) {
                 />
               </svg>
             </button>
-            <h1 className="text-xl font-bold text-gray-900">
+            <h1 className="text-xl font-bold text-gray-800">
               Admin Dashboard
             </h1>
           </div>
 
           <div className="flex items-center space-x-4">
-            <span className="text-sm text-gray-600 hidden sm:block">
+            <span className="text-sm text-gray-700 hidden sm:block">
               {user?.prenom} {user?.nom}
             </span>
             <Button 
               variant="outline" 
               size="sm" 
               onClick={() => setIsUserModalOpen(true)}
+              className="p-2"
             >
-              Me
+              <User className="w-5 h-5" />
             </Button>
-            <Button variant="outline" size="sm" onClick={handleLogout}>
-              Déconnexion
+            <Button variant="outline" size="sm" onClick={handleLogout} className="flex items-center gap-2">
+              <LogOut className="w-4 h-4" />
+              <span>Déconnexion</span>
             </Button>
           </div>
         </div>
       </header>
+      <style>{`
+        .header-container {
+          background-color: #cbcbcd;
+          border-bottom: 1px solid #b0b0b2;
+          border-radius: 0.75rem;
+          margin: 0.5rem;
+          margin-top: 0.5rem;
+          margin-bottom: 0.5rem;
+          box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+      `}</style>
 
       {/* Modal User Info */}
       <Dialog open={isUserModalOpen} onOpenChange={setIsUserModalOpen}>
         <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Mes Informations</DialogTitle>
-            <DialogDescription>
-              Informations de votre profil utilisateur
-            </DialogDescription>
+          <DialogHeader className="border-b pb-4">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-gray-100 rounded-lg">
+                <User className="w-6 h-6 text-gray-800" />
+              </div>
+              <div>
+                <DialogTitle>Mes Informations</DialogTitle>
+                <DialogDescription>
+                  Informations de votre profil utilisateur
+                </DialogDescription>
+              </div>
+            </div>
           </DialogHeader>
           {user && (
-            <div className="space-y-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Nom</Label>
-                  <p className="text-sm font-medium mt-1">{user.nom}</p>
-                </div>
-                <div>
-                  <Label>Prénom</Label>
-                  <p className="text-sm font-medium mt-1">{user.prenom}</p>
-                </div>
+            <div className="space-y-3 py-4">
+              <div className="grid grid-cols-[1fr_2fr] gap-4 items-center border-b pb-3">
+                <Label>Nom</Label>
+                <p className="text-sm font-medium">{user.nom}</p>
               </div>
-              <div>
+              <div className="grid grid-cols-[1fr_2fr] gap-4 items-center border-b pb-3">
+                <Label>Prénom</Label>
+                <p className="text-sm font-medium">{user.prenom}</p>
+              </div>
+              <div className="grid grid-cols-[1fr_2fr] gap-4 items-center border-b pb-3">
                 <Label>Email</Label>
-                <p className="text-sm font-medium mt-1">{user.email}</p>
+                <p className="text-sm font-medium">{user.email}</p>
               </div>
-              <div>
+              <div className="grid grid-cols-[1fr_2fr] gap-4 items-center">
                 <Label>Rôle</Label>
-                <p className="text-sm font-medium mt-1">
-                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                    user.role === 'admin' 
-                      ? 'bg-blue-100 text-blue-800' 
-                      : 'bg-gray-100 text-gray-800'
-                  }`}>
-                    {user.role === 'admin' ? 'Administrateur' : 'Chauffeur'}
-                  </span>
-                </p>
+                <span className={`px-2 py-1 text-xs font-semibold rounded-full w-fit ${
+                  user.role === 'admin' 
+                    ? 'bg-blue-100 text-blue-800' 
+                    : 'bg-gray-100 text-gray-800'
+                }`}>
+                  {user.role === 'admin' ? 'Administrateur' : 'Chauffeur'}
+                </span>
               </div>
-              {user.isActive !== undefined && (
-                <div>
-                  <Label>Statut</Label>
-                  <p className="text-sm font-medium mt-1">
-                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                      user.isActive 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      {user.isActive ? 'Actif' : 'Inactif'}
-                    </span>
-                  </p>
-                </div>
-              )}
             </div>
           )}
-          <div className="flex justify-end">
-            <Button onClick={() => setIsUserModalOpen(false)}>Fermer</Button>
-          </div>
         </DialogContent>
       </Dialog>
     </>
