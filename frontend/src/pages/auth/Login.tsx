@@ -23,40 +23,55 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-sm rounded-lg border bg-white p-6 shadow-sm">
-        <h1 className="text-2xl font-semibold mb-4">Se connecter</h1>
-        {error && <p className="text-red-600 text-sm mb-2">{error}</p>}
-        <form onSubmit={onSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="password">Mot de passe</Label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-            />
-          </div>
-          <Button type="submit" className="w-full" disabled={status === "loading"}>
-            {status === "loading" ? "Connexion..." : "Se connecter"}
-          </Button>
-        </form>
-        <p className="text-sm text-gray-600 mt-3">
-          Pas de compte ? <Link to="/register" className="text-blue-600">S'inscrire</Link>
-        </p>
+    <div className="min-h-screen flex">
+      {/* Form Section - Left Side */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center bg-gray-50 px-4 py-8">
+        <div className="w-full max-w-md rounded-lg p-6 sm:p-8">
+          <h1 className="text-2xl sm:text-3xl font-semibold mb-4 sm:mb-6">Se connecter</h1>
+          {error && <p className="text-red-600 text-sm mb-2">{error}</p>}
+          <form onSubmit={onSubmit} className="space-y-4 sm:space-y-5">
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                required
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="password">Mot de passe</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                className="mt-1"
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={status === "loading"}>
+              {status === "loading" ? "Connexion..." : "Se connecter"}
+            </Button>
+          </form>
+          <p className="text-sm text-gray-600 mt-4 sm:mt-6 text-center">
+            Pas de compte ? <Link to="/register" className="text-blue-600 hover:underline">S'inscrire</Link>
+          </p>
+        </div>
+      </div>
+
+      {/* Image Section - Right Side */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gray-100 relative overflow-hidden">
+        <img 
+          src="/register.png" 
+          alt="Login" 
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-black/50"></div>
       </div>
     </div>
   );

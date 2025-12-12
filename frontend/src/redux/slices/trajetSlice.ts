@@ -78,11 +78,11 @@ export const updateStatutThunk = createAsyncThunk(
 export const updateKmEtGasoilThunk = createAsyncThunk(
   "trajets/updateKmEtGasoil",
   async (
-    { id, kmArrivee, gasoil }: { id: string; kmArrivee?: number; gasoil?: number },
+    { id, kmArrivee, gasoilConsomme }: { id: string; kmArrivee?: number; gasoilConsomme?: number },
     { rejectWithValue }
   ) => {
     try {
-      return await updateKmEtGasoil(id, { kmArrivee, gasoil });
+      return await updateKmEtGasoil(id, { kmArrivee, gasoilConsomme });
     } catch (err: any) {
       return rejectWithValue(err?.response?.data?.message || "Update km/gasoil failed");
     }
