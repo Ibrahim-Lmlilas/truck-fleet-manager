@@ -206,10 +206,10 @@ export default function CamionsPage() {
   const currentCamions = filteredCamions.slice(startIndex, endIndex);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Gestion des Camions</h1>
-        <p className="text-gray-600 mt-1">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Gestion des Camions</h1>
+        <p className="text-sm sm:text-base text-gray-600 mt-1">
           {filteredCamions.length} camion(s) au total
         </p>
       </div>
@@ -217,8 +217,8 @@ export default function CamionsPage() {
 
         <CardHeader>
         </CardHeader>
-        <CardContent className="flex items-center gap-4">
-        <Button onClick={openCreateModal}>
+        <CardContent className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+        <Button onClick={openCreateModal} className="w-full sm:w-auto">
             <Plus className="w-4 h-4 mr-2" />
             Ajouter un camion
           </Button>
@@ -226,7 +226,7 @@ export default function CamionsPage() {
             placeholder="Rechercher par matricule, marque ou modèle..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-md"
+            className="w-full sm:max-w-md"
           />
           
         </CardContent>
@@ -235,12 +235,13 @@ export default function CamionsPage() {
       <Card>
         <CardContent className="p-0">
           {loading ? (
-            <div className="p-8 text-center">
+            <div className="p-6 sm:p-8 text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
             </div>
           ) : currentCamions.length > 0 ? (
             <>
-              <div className="overflow-x-auto">
+              {/* Desktop Table - visible on lg+ */}
+              <div className="hidden lg:block overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b">
                     <tr>
@@ -310,11 +311,61 @@ export default function CamionsPage() {
                 </table>
               </div>
 
+              {/* Mobile/Tablet Cards - visible on < lg */}
+              <div className="lg:hidden divide-y divide-gray-200">
+                {currentCamions.map((camion) => (
+                  <div key={camion._id} className="p-4 sm:p-6 hover:bg-gray-50">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-900">
+                          {camion.matricule}
+                        </h3>
+                        <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+                          {camion.marque || "-"} {camion.modele || ""}
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openEditModal(camion)}
+                          title="Modifier"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDeleteClick(camion._id)}
+                          title="Supprimer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-xs sm:text-sm">
+                      <div>
+                        <span className="text-gray-500">Année:</span>
+                        <span className="ml-2 font-medium text-gray-900">
+                          {camion.annee || "-"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Kilométrage:</span>
+                        <span className="ml-2 font-medium text-gray-900">
+                          {camion.kilometrage?.toLocaleString() || 0} km
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="px-6 py-4 border-t flex justify-center">
+                <div className="px-4 sm:px-6 py-3 sm:py-4 border-t flex justify-center">
                   <Pagination>
-                    <PaginationContent>
+                    <PaginationContent className="gap-1 sm:gap-2">
                       <PaginationItem>
                         <PaginationPrevious
                           onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
@@ -343,7 +394,7 @@ export default function CamionsPage() {
               )}
             </>
           ) : (
-            <div className="p-8 text-center text-gray-500">
+            <div className="p-6 sm:p-8 text-center text-sm sm:text-base text-gray-500">
               {searchTerm
                 ? "Aucun camion trouvé pour cette recherche"
                 : "Aucun camion. Cliquez sur 'Ajouter un camion' pour commencer."}
@@ -354,21 +405,21 @@ export default function CamionsPage() {
 
       {/* Modal Create/Edit */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[500px] max-w-[95vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">
               {editingCamion ? "Modifier le camion" : "Ajouter un camion"}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-xs sm:text-sm">
               {editingCamion
                 ? "Modifiez les informations du camion ci-dessous."
                 : "Remplissez les informations pour ajouter un nouveau camion."}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="matricule">Matricule *</Label>
+            <div className="space-y-3 sm:space-y-4 py-3 sm:py-4">
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="matricule" className="text-xs sm:text-sm">Matricule *</Label>
                 <Input
                   id="matricule"
                   required
@@ -378,30 +429,33 @@ export default function CamionsPage() {
                     setFormData({ ...formData, matricule: e.target.value.toUpperCase() })
                   }
                   placeholder="Ex: 12345-A-67"
+                  className="text-sm sm:text-base"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="marque">Marque</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="marque" className="text-xs sm:text-sm">Marque</Label>
                 <Input
                   id="marque"
                   maxLength={50}
                   value={formData.marque}
                   onChange={(e) => setFormData({ ...formData, marque: e.target.value.toLowerCase() })}
                   placeholder="Ex: Mercedes"
+                  className="text-sm sm:text-base"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="modele">Modèle</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="modele" className="text-xs sm:text-sm">Modèle</Label>
                 <Input
                   id="modele"
                   maxLength={50}
                   value={formData.modele}
                   onChange={(e) => setFormData({ ...formData, modele: e.target.value.toLowerCase() })}
                   placeholder="Ex: Actros"
+                  className="text-sm sm:text-base"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="annee">Année *</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="annee" className="text-xs sm:text-sm">Année *</Label>
                 <Input
                   id="annee"
                   type="number"
@@ -416,13 +470,14 @@ export default function CamionsPage() {
                     })
                   }
                   placeholder="Ex: 2020"
+                  className="text-sm sm:text-base"
                 />
-                <p className="text-xs text-gray-500">
+                <p className="text-[10px] sm:text-xs text-gray-500">
                   Entre 1980 et {new Date().getFullYear() + 1}
                 </p>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="kilometrage">Kilométrage (km)</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="kilometrage" className="text-xs sm:text-sm">Kilométrage (km)</Label>
                 <Input
                   id="kilometrage"
                   type="number"
@@ -434,19 +489,21 @@ export default function CamionsPage() {
                     })
                   }
                   placeholder="Ex: 50000"
+                  className="text-sm sm:text-base"
                 />
               </div>
             </div>
-            <DialogFooter>
+            <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setIsModalOpen(false)}
                 disabled={submitting}
+                className="w-full sm:w-auto text-sm"
               >
                 Annuler
               </Button>
-              <Button type="submit" disabled={submitting}>
+              <Button type="submit" disabled={submitting} className="w-full sm:w-auto text-sm">
                 {submitting ? "Enregistrement..." : "Enregistrer"}
               </Button>
             </DialogFooter>
@@ -456,18 +513,18 @@ export default function CamionsPage() {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-[95vw] sm:max-w-[425px]">
           <AlertDialogHeader>
-            <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="text-base sm:text-lg">Êtes-vous sûr ?</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs sm:text-sm">
               Cette action est irréversible. Ce camion sera définitivement supprimé.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setCamionToDelete(null)}>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
+            <AlertDialogCancel onClick={() => setCamionToDelete(null)} className="w-full sm:w-auto text-sm">
               Annuler
             </AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-red-600 hover:bg-red-700">
+            <AlertDialogAction onClick={handleDeleteConfirm} className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-sm">
               Supprimer
             </AlertDialogAction>
           </AlertDialogFooter>

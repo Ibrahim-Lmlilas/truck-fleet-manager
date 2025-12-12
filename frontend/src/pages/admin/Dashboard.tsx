@@ -130,32 +130,32 @@ export default function AdminDashboard() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
           Tableau de Bord Admin
         </h1>
-        <p className="text-gray-600 mt-2">
+        <p className="text-sm sm:text-base text-gray-600 mt-1 sm:mt-2">
           Bienvenue, {user?.prenom} {user?.nom}
         </p>
       </div>
 
-      <div className="grid grid-rows-[auto_1fr] gap-6">
-        <div className="grid grid-cols-[30%_70%] gap-6">
-          <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-rows-1 lg:grid-rows-[auto_1fr] gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[30%_70%] gap-4 sm:gap-6">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
         <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">
+          <CardHeader className="pb-2 sm:pb-3">
+            <CardTitle className="text-xs sm:text-sm font-medium text-gray-600">
               Total Camions
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-0">
             {stats.loading ? (
               <div className="animate-pulse">
-                <div className="h-8 bg-gray-200 rounded w-16"></div>
+                <div className="h-6 sm:h-8 bg-gray-200 rounded w-12 sm:w-16"></div>
               </div>
             ) : (
-              <div className="text-2xl font-bold text-blue-600">
+              <div className="text-xl sm:text-2xl font-bold text-blue-600">
                 {stats.totalCamions}
               </div>
             )}
@@ -163,18 +163,18 @@ export default function AdminDashboard() {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">
+          <CardHeader className="pb-2 sm:pb-3">
+            <CardTitle className="text-xs sm:text-sm font-medium text-gray-600">
               Trajets Actifs
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-0">
             {stats.loading ? (
               <div className="animate-pulse">
-                <div className="h-8 bg-gray-200 rounded w-16"></div>
+                <div className="h-6 sm:h-8 bg-gray-200 rounded w-12 sm:w-16"></div>
               </div>
             ) : (
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-xl sm:text-2xl font-bold text-green-600">
                 {stats.trajetsActifs}
               </div>
             )}
@@ -182,18 +182,18 @@ export default function AdminDashboard() {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">
+          <CardHeader className="pb-2 sm:pb-3">
+            <CardTitle className="text-xs sm:text-sm font-medium text-gray-600">
               Maintenances Prévues
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-0">
             {stats.loading ? (
               <div className="animate-pulse">
-                <div className="h-8 bg-gray-200 rounded w-16"></div>
+                <div className="h-6 sm:h-8 bg-gray-200 rounded w-12 sm:w-16"></div>
               </div>
             ) : (
-              <div className="text-2xl font-bold text-orange-600">
+              <div className="text-xl sm:text-2xl font-bold text-orange-600">
                 {stats.maintenancesAPrevenir}
               </div>
             )}
@@ -201,18 +201,18 @@ export default function AdminDashboard() {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">
+          <CardHeader className="pb-2 sm:pb-3">
+            <CardTitle className="text-xs sm:text-sm font-medium text-gray-600">
               Alertes
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-0">
             {stats.loading ? (
               <div className="animate-pulse">
-                <div className="h-8 bg-gray-200 rounded w-16"></div>
+                <div className="h-6 sm:h-8 bg-gray-200 rounded w-12 sm:w-16"></div>
               </div>
             ) : (
-              <div className="text-2xl font-bold text-red-600">
+              <div className="text-xl sm:text-2xl font-bold text-red-600">
                 {stats.maintenancesAPrevenir > 0 ? stats.maintenancesAPrevenir : 0}
               </div>
             )}
@@ -222,31 +222,31 @@ export default function AdminDashboard() {
 
           {/* Table Trajets - 70% largeur */}
           <Card className="h-full">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Trajets</CardTitle>
-              <Link to="/admin/trajets" className="text-sm text-blue-600 hover:underline">
+            <CardHeader className="flex flex-row items-center justify-between pb-3 sm:pb-4">
+              <CardTitle className="text-base sm:text-lg">Trajets</CardTitle>
+              <Link to="/admin/trajets" className="text-xs sm:text-sm text-blue-600 hover:underline whitespace-nowrap">
                 Voir tout →
               </Link>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-3 sm:px-6">
               {data.loadingTables ? (
-                <div className="space-y-3">
+                <div className="space-y-2 sm:space-y-3">
                   {[1, 2, 3].map((i) => (
-                    <div key={i} className="animate-pulse flex space-x-4">
-                      <div className="h-4 bg-gray-200 rounded flex-1"></div>
-                      <div className="h-4 bg-gray-200 rounded w-24"></div>
+                    <div key={i} className="animate-pulse flex space-x-2 sm:space-x-4">
+                      <div className="h-3 sm:h-4 bg-gray-200 rounded flex-1"></div>
+                      <div className="h-3 sm:h-4 bg-gray-200 rounded w-16 sm:w-24"></div>
                     </div>
                   ))}
                 </div>
               ) : trajetsPagines.length > 0 ? (
                 <>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
+                  <div className="overflow-x-auto -mx-3 sm:mx-0">
+                    <table className="w-full text-xs sm:text-sm">
                       <thead className="border-b">
                         <tr className="text-left text-gray-600">
-                          <th className="pb-2 font-medium">Date départ</th>
-                          <th className="pb-2 font-medium">Chauffeur</th>
-                          <th className="pb-2 font-medium">Statut</th>
+                          <th className="pb-2 pl-3 sm:pl-0 font-medium">Date départ</th>
+                          <th className="pb-2 font-medium hidden sm:table-cell">Chauffeur</th>
+                          <th className="pb-2 pr-3 sm:pr-0 font-medium">Statut</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -257,19 +257,23 @@ export default function AdminDashboard() {
                           
                           return (
                             <tr key={trajet._id} className="border-b hover:bg-gray-50">
-                              <td className="py-3 font-medium">
+                              <td className="py-2 sm:py-3 pl-3 sm:pl-0 font-medium text-xs sm:text-sm">
                                 {trajet.dateDepart
-                                  ? new Date(trajet.dateDepart).toLocaleDateString("fr-FR")
+                                  ? new Date(trajet.dateDepart).toLocaleDateString("fr-FR", {
+                                      day: "2-digit",
+                                      month: "2-digit",
+                                      year: window.innerWidth < 640 ? "2-digit" : "numeric"
+                                    })
                                   : "-"}
                               </td>
-                              <td className="py-3 text-gray-600">
+                              <td className="py-2 sm:py-3 text-gray-600 text-xs sm:text-sm hidden sm:table-cell">
                                 {chauffeurInfo 
                                   ? `${chauffeurInfo.prenom || ""} ${chauffeurInfo.nom || ""}`.trim() || "-"
                                   : "-"}
                               </td>
-                              <td className="py-3">
+                              <td className="py-2 sm:py-3 pr-3 sm:pr-0">
                                 <span
-                                  className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                  className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium ${
                                     trajet.statut === "en_cours"
                                       ? "bg-green-100 text-green-700"
                                       : trajet.statut === "planifie"
@@ -291,9 +295,9 @@ export default function AdminDashboard() {
                     </table>
                   </div>
                   {totalPagesTrajets > 1 && (
-                    <div className="mt-4 flex justify-center">
+                    <div className="mt-3 sm:mt-4 flex justify-center">
                       <Pagination>
-                        <PaginationContent>
+                        <PaginationContent className="gap-1 sm:gap-2">
                           <PaginationItem>
                             <PaginationPrevious
                               onClick={() => {
@@ -333,42 +337,42 @@ export default function AdminDashboard() {
         </div>
 
         {/* Deuxième ligne: 50% hauteur - Derniers Camions (50% largeur) + Dernières Remorques (50% largeur) */}
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         {/* Table Camions */}
           <Card className="h-full">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Derniers Camions</CardTitle>
-            <Link to="/admin/camions" className="text-sm text-blue-600 hover:underline">
+          <CardHeader className="flex flex-row items-center justify-between pb-3 sm:pb-4">
+            <CardTitle className="text-base sm:text-lg">Derniers Camions</CardTitle>
+            <Link to="/admin/camions" className="text-xs sm:text-sm text-blue-600 hover:underline whitespace-nowrap">
               Voir tout →
             </Link>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-3 sm:px-6">
             {data.loadingTables ? (
-              <div className="space-y-3">
+              <div className="space-y-2 sm:space-y-3">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="animate-pulse flex space-x-4">
-                    <div className="h-4 bg-gray-200 rounded flex-1"></div>
-                    <div className="h-4 bg-gray-200 rounded w-20"></div>
+                  <div key={i} className="animate-pulse flex space-x-2 sm:space-x-4">
+                    <div className="h-3 sm:h-4 bg-gray-200 rounded flex-1"></div>
+                    <div className="h-3 sm:h-4 bg-gray-200 rounded w-16 sm:w-20"></div>
                   </div>
                 ))}
               </div>
               ) : camionsPaginees.length > 0 ? (
                 <>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+              <div className="overflow-x-auto -mx-3 sm:mx-0">
+                <table className="w-full text-xs sm:text-sm">
                   <thead className="border-b">
                     <tr className="text-left text-gray-600">
-                      <th className="pb-2 font-medium">Matricule</th>
-                      <th className="pb-2 font-medium">Marque</th>
-                      <th className="pb-2 font-medium">KM</th>
+                      <th className="pb-2 pl-3 sm:pl-0 font-medium">Matricule</th>
+                      <th className="pb-2 font-medium hidden sm:table-cell">Marque</th>
+                      <th className="pb-2 pr-3 sm:pr-0 font-medium">KM</th>
                     </tr>
                   </thead>
                   <tbody>
                         {camionsPaginees.map((camion) => (
                       <tr key={camion._id} className="border-b hover:bg-gray-50">
-                        <td className="py-3 font-medium">{camion.matricule}</td>
-                        <td className="py-3 text-gray-600">{camion.marque || "-"}</td>
-                        <td className="py-3 text-gray-600">
+                        <td className="py-2 sm:py-3 pl-3 sm:pl-0 font-medium text-xs sm:text-sm">{camion.matricule}</td>
+                        <td className="py-2 sm:py-3 text-gray-600 text-xs sm:text-sm hidden sm:table-cell">{camion.marque || "-"}</td>
+                        <td className="py-2 sm:py-3 pr-3 sm:pr-0 text-gray-600 text-xs sm:text-sm">
                           {camion.kilometrage?.toLocaleString() || 0} km
                         </td>
                       </tr>
@@ -377,9 +381,9 @@ export default function AdminDashboard() {
                 </table>
               </div>
                   {totalPagesCamions > 1 && (
-                    <div className="mt-4 flex justify-center">
+                    <div className="mt-3 sm:mt-4 flex justify-center">
                       <Pagination>
-                        <PaginationContent>
+                        <PaginationContent className="gap-1 sm:gap-2">
                           <PaginationItem>
                             <PaginationPrevious
                               onClick={() => {
@@ -419,39 +423,39 @@ export default function AdminDashboard() {
 
         {/* Table Remorques */}
           <Card className="h-full">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Dernières Remorques</CardTitle>
-            <Link to="/admin/remorques" className="text-sm text-blue-600 hover:underline">
+          <CardHeader className="flex flex-row items-center justify-between pb-3 sm:pb-4">
+            <CardTitle className="text-base sm:text-lg">Dernières Remorques</CardTitle>
+            <Link to="/admin/remorques" className="text-xs sm:text-sm text-blue-600 hover:underline whitespace-nowrap">
               Voir tout →
             </Link>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-3 sm:px-6">
             {data.loadingTables ? (
-              <div className="space-y-3">
+              <div className="space-y-2 sm:space-y-3">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="animate-pulse flex space-x-4">
-                    <div className="h-4 bg-gray-200 rounded flex-1"></div>
-                    <div className="h-4 bg-gray-200 rounded w-20"></div>
+                  <div key={i} className="animate-pulse flex space-x-2 sm:space-x-4">
+                    <div className="h-3 sm:h-4 bg-gray-200 rounded flex-1"></div>
+                    <div className="h-3 sm:h-4 bg-gray-200 rounded w-16 sm:w-20"></div>
                   </div>
                 ))}
               </div>
               ) : remorquesPaginees.length > 0 ? (
                 <>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+              <div className="overflow-x-auto -mx-3 sm:mx-0">
+                <table className="w-full text-xs sm:text-sm">
                   <thead className="border-b">
                     <tr className="text-left text-gray-600">
-                      <th className="pb-2 font-medium">Matricule</th>
-                      <th className="pb-2 font-medium">Type</th>
-                      <th className="pb-2 font-medium">Capacité</th>
+                      <th className="pb-2 pl-3 sm:pl-0 font-medium">Matricule</th>
+                      <th className="pb-2 font-medium hidden sm:table-cell">Type</th>
+                      <th className="pb-2 pr-3 sm:pr-0 font-medium">Capacité</th>
                     </tr>
                   </thead>
                   <tbody>
                         {remorquesPaginees.map((remorque) => (
                       <tr key={remorque._id} className="border-b hover:bg-gray-50">
-                        <td className="py-3 font-medium">{remorque.matricule}</td>
-                        <td className="py-3 text-gray-600">{remorque.type || "-"}</td>
-                        <td className="py-3 text-gray-600">
+                        <td className="py-2 sm:py-3 pl-3 sm:pl-0 font-medium text-xs sm:text-sm">{remorque.matricule}</td>
+                        <td className="py-2 sm:py-3 text-gray-600 text-xs sm:text-sm hidden sm:table-cell">{remorque.type || "-"}</td>
+                        <td className="py-2 sm:py-3 pr-3 sm:pr-0 text-gray-600 text-xs sm:text-sm">
                           {remorque.capacite ? `${remorque.capacite} T` : "-"}
                         </td>
                       </tr>
@@ -460,9 +464,9 @@ export default function AdminDashboard() {
                 </table>
               </div>
                   {totalPagesRemorques > 1 && (
-                    <div className="mt-4 flex justify-center">
+                    <div className="mt-3 sm:mt-4 flex justify-center">
                       <Pagination>
-                        <PaginationContent>
+                        <PaginationContent className="gap-1 sm:gap-2">
                           <PaginationItem>
                             <PaginationPrevious
                               onClick={() => {

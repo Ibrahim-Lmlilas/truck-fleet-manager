@@ -206,10 +206,10 @@ const AdminRemorques = () => {
   const currentRemorques = filteredRemorques.slice(startIndex, endIndex);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Gestion des Remorques</h1>
-        <p className="text-gray-600 mt-1">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Gestion des Remorques</h1>
+        <p className="text-sm sm:text-base text-gray-600 mt-1">
           {filteredRemorques.length} remorque(s) au total
         </p>
       </div>
@@ -217,8 +217,8 @@ const AdminRemorques = () => {
 
         <CardHeader>
         </CardHeader>
-        <CardContent className="flex items-center gap-4">
-          <Button onClick={openCreateModal}>
+        <CardContent className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+          <Button onClick={openCreateModal} className="w-full sm:w-auto">
             <Plus className="w-4 h-4 mr-2" />
             Ajouter une remorque
           </Button>
@@ -226,7 +226,7 @@ const AdminRemorques = () => {
             placeholder="Rechercher par matricule ou type..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-md"
+            className="w-full sm:max-w-md"
           />
         </CardContent>
 
@@ -234,12 +234,13 @@ const AdminRemorques = () => {
       <Card>
         <CardContent className="p-0">
           {loading ? (
-            <div className="p-8 text-center">
+            <div className="p-6 sm:p-8 text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
             </div>
           ) : currentRemorques.length > 0 ? (
             <>
-              <div className="overflow-x-auto">
+              {/* Desktop Table - visible on lg+ */}
+              <div className="hidden lg:block overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b">
                     <tr>
@@ -306,11 +307,55 @@ const AdminRemorques = () => {
                 </table>
               </div>
 
+              {/* Mobile/Tablet Cards - visible on < lg */}
+              <div className="lg:hidden divide-y divide-gray-200">
+                {currentRemorques.map((remorque) => (
+                  <div key={remorque._id} className="p-4 sm:p-6 hover:bg-gray-50">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-900">
+                          {remorque.matricule}
+                        </h3>
+                        {remorque.type && (
+                          <span className="inline-flex items-center px-2 py-0.5 mt-1 rounded-full text-[10px] sm:text-xs font-medium bg-blue-100 text-blue-800">
+                            {remorque.type}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openEditModal(remorque)}
+                          title="Modifier"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDeleteClick(remorque._id)}
+                          title="Supprimer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="text-xs sm:text-sm">
+                      <span className="text-gray-500">Capacité:</span>
+                      <span className="ml-2 font-semibold text-gray-900">
+                        {remorque.capacite ? `${remorque.capacite} T` : "-"}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="px-6 py-4 border-t flex justify-center">
+                <div className="px-4 sm:px-6 py-3 sm:py-4 border-t flex justify-center">
                   <Pagination>
-                    <PaginationContent>
+                    <PaginationContent className="gap-1 sm:gap-2">
                       <PaginationItem>
                         <PaginationPrevious
                           onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
@@ -339,7 +384,7 @@ const AdminRemorques = () => {
               )}
             </>
           ) : (
-            <div className="p-8 text-center text-gray-500">
+            <div className="p-6 sm:p-8 text-center text-sm sm:text-base text-gray-500">
               {searchTerm
                 ? "Aucune remorque trouvée pour cette recherche"
                 : "Aucune remorque. Cliquez sur 'Ajouter une remorque' pour commencer."}
@@ -350,22 +395,22 @@ const AdminRemorques = () => {
 
       {/* Create/Edit Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[500px] max-w-[95vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">
               {editingRemorque ? "Modifier la Remorque" : "Nouvelle Remorque"}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-xs sm:text-sm">
               {editingRemorque
                 ? "Modifiez les informations de la remorque"
                 : "Ajoutez une nouvelle remorque à votre flotte"}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
-            <div className="space-y-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="matricule">Matricule *</Label>
+            <div className="space-y-3 sm:space-y-4 py-3 sm:py-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <div className="space-y-1.5 sm:space-y-2">
+                  <Label htmlFor="matricule" className="text-xs sm:text-sm">Matricule *</Label>
                   <Input
                     id="matricule"
                     required
@@ -375,10 +420,11 @@ const AdminRemorques = () => {
                       setFormData({ ...formData, matricule: e.target.value.toUpperCase() })
                     }
                     placeholder="Ex: REM-123-ABC"
+                    className="text-sm sm:text-base"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="type">Type *</Label>
+                <div className="space-y-1.5 sm:space-y-2">
+                  <Label htmlFor="type" className="text-xs sm:text-sm">Type *</Label>
                   <Select
                     value={formData.type}
                     onValueChange={(value) =>
@@ -386,7 +432,7 @@ const AdminRemorques = () => {
                     }
                     required
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="text-sm sm:text-base">
                       <SelectValue placeholder="Sélectionnez un type" />
                     </SelectTrigger>
                     <SelectContent>
@@ -399,8 +445,8 @@ const AdminRemorques = () => {
                   </Select>
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="capacite">Capacité (tonnes) *</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="capacite" className="text-xs sm:text-sm">Capacité (tonnes) *</Label>
                 <Input
                   id="capacite"
                   type="number"
@@ -415,22 +461,24 @@ const AdminRemorques = () => {
                     })
                   }
                   placeholder="Ex: 25"
+                  className="text-sm sm:text-base"
                 />
-                <p className="text-xs text-gray-500">
+                <p className="text-[10px] sm:text-xs text-gray-500">
                   Minimum 1 tonne
                 </p>
               </div>
             </div>
-            <DialogFooter>
+            <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setIsModalOpen(false)}
                 disabled={submitting}
+                className="w-full sm:w-auto text-sm"
               >
                 Annuler
               </Button>
-              <Button type="submit" disabled={submitting}>
+              <Button type="submit" disabled={submitting} className="w-full sm:w-auto text-sm">
                 {submitting ? "Enregistrement..." : "Enregistrer"}
               </Button>
             </DialogFooter>
@@ -440,18 +488,18 @@ const AdminRemorques = () => {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-[95vw] sm:max-w-[425px]">
           <AlertDialogHeader>
-            <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="text-base sm:text-lg">Êtes-vous sûr ?</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs sm:text-sm">
               Cette action est irréversible. Cette remorque sera définitivement supprimée.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setRemorqueToDelete(null)}>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
+            <AlertDialogCancel onClick={() => setRemorqueToDelete(null)} className="w-full sm:w-auto text-sm">
               Annuler
             </AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-red-600 hover:bg-red-700">
+            <AlertDialogAction onClick={handleDeleteConfirm} className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-sm">
               Supprimer
             </AlertDialogAction>
           </AlertDialogFooter>
