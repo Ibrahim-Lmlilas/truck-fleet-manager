@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Pencil, Trash2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +12,24 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { Label } from "@/components/ui/label";
 import {
   getCamions,
@@ -26,7 +46,9 @@ export default function CamionsPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 8;
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [camionToDelete, setCamionToDelete] = useState<string | null>(null);
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -39,6 +61,34 @@ export default function CamionsPage() {
     kilometrage: undefined,
   });
   const [submitting, setSubmitting] = useState(false);
+
+  // Fonction pour extraire le message d'erreur
+  const getErrorMessage = (error: any): string => {
+    if (!error) return "Une erreur est survenue";
+    
+    // Erreur de validation Yup avec plusieurs messages
+    if (error.response?.data?.errors) {
+      const errors = error.response.data.errors;
+      if (Array.isArray(errors)) {
+        return errors.join(", ");
+      }
+      if (typeof errors === "object") {
+        return Object.values(errors).flat().join(", ");
+      }
+    }
+    
+    // Message d'erreur unique
+    if (error.response?.data?.message) {
+      return error.response.data.message;
+    }
+    
+    // Erreur réseau
+    if (error.message) {
+      return error.message;
+    }
+    
+    return "Une erreur est survenue";
+  };
 
   useEffect(() => {
     fetchCamions();
@@ -64,8 +114,12 @@ export default function CamionsPage() {
       const camionsArray = Array.isArray(data) ? data : [];
       setCamions(camionsArray);
       setFilteredCamions(camionsArray.filter((c) => !c.isDelete));
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erreur lors du chargement des camions:", error);
+      const errorMessage = getErrorMessage(error);
+      toast.error(`Erreur lors du chargement: ${errorMessage}`, {
+        duration: 5000,
+      });
       setCamions([]);
       setFilteredCamions([]);
     } finally {
@@ -104,30 +158,44 @@ export default function CamionsPage() {
     try {
       if (editingCamion) {
         await updateCamion(editingCamion._id, formData);
+        toast.success("Camion modifié avec succès");
       } else {
         await createCamion(formData);
+        toast.success("Camion ajouté avec succès");
       }
       setIsModalOpen(false);
       fetchCamions();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erreur lors de la sauvegarde:", error);
-      alert("Erreur lors de la sauvegarde du camion");
+      const errorMessage = getErrorMessage(error);
+      toast.error(errorMessage, {
+        duration: 5000,
+      });
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm("Êtes-vous sûr de vouloir supprimer ce camion ?")) {
-      return;
-    }
+  const handleDeleteClick = (id: string) => {
+    setCamionToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!camionToDelete) return;
 
     try {
-      await deleteCamion(id);
+      await deleteCamion(camionToDelete);
+      toast.success("Camion supprimé avec succès");
+      setDeleteDialogOpen(false);
+      setCamionToDelete(null);
       fetchCamions();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erreur lors de la suppression:", error);
-      alert("Erreur lors de la suppression du camion");
+      const errorMessage = getErrorMessage(error);
+      toast.error(errorMessage, {
+        duration: 5000,
+      });
     }
   };
 
@@ -139,32 +207,29 @@ export default function CamionsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gestion des Camions</h1>
-          <p className="text-gray-600 mt-1">
-            {filteredCamions.length} camion(s) au total
-          </p>
-        </div>
-        <Button onClick={openCreateModal}>
-          <span className="mr-2">+</span> Ajouter un camion
-        </Button>
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Gestion des Camions</h1>
+        <p className="text-gray-600 mt-1">
+          {filteredCamions.length} camion(s) au total
+        </p>
       </div>
 
-      {/* Search */}
-      <Card>
+
         <CardHeader>
-          <CardTitle className="text-lg">Rechercher</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex items-center gap-4">
+        <Button onClick={openCreateModal}>
+            <Plus className="w-4 h-4 mr-2" />
+            Ajouter un camion
+          </Button>
           <Input
             placeholder="Rechercher par matricule, marque ou modèle..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="max-w-md"
           />
+          
         </CardContent>
-      </Card>
 
       {/* Table */}
       <Card>
@@ -226,15 +291,17 @@ export default function CamionsPage() {
                             size="sm"
                             onClick={() => openEditModal(camion)}
                             className="mr-2"
+                            title="Modifier"
                           >
-                            Modifier
+                            <Pencil className="w-4 h-4" />
                           </Button>
                           <Button
                             variant="destructive"
                             size="sm"
-                            onClick={() => handleDelete(camion._id)}
+                            onClick={() => handleDeleteClick(camion._id)}
+                            title="Supprimer"
                           >
-                            Supprimer
+                            <Trash2 className="w-4 h-4" />
                           </Button>
                         </td>
                       </tr>
@@ -245,28 +312,33 @@ export default function CamionsPage() {
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="px-6 py-4 border-t flex items-center justify-between">
-                  <div className="text-sm text-gray-600">
-                    Page {currentPage} sur {totalPages}
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      disabled={currentPage === 1}
-                    >
-                      Précédent
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                      disabled={currentPage === totalPages}
-                    >
-                      Suivant
-                    </Button>
-                  </div>
+                <div className="px-6 py-4 border-t flex justify-center">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious
+                          onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                          disabled={currentPage === 1}
+                        />
+                      </PaginationItem>
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                        <PaginationItem key={page}>
+                          <PaginationLink
+                            onClick={() => setCurrentPage(page)}
+                            isActive={page === currentPage}
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      ))}
+                      <PaginationItem>
+                        <PaginationNext
+                          onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                          disabled={currentPage === totalPages}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
                 </div>
               )}
             </>
@@ -300,9 +372,10 @@ export default function CamionsPage() {
                 <Input
                   id="matricule"
                   required
+                  maxLength={20}
                   value={formData.matricule}
                   onChange={(e) =>
-                    setFormData({ ...formData, matricule: e.target.value })
+                    setFormData({ ...formData, matricule: e.target.value.toUpperCase() })
                   }
                   placeholder="Ex: 12345-A-67"
                 />
@@ -311,8 +384,9 @@ export default function CamionsPage() {
                 <Label htmlFor="marque">Marque</Label>
                 <Input
                   id="marque"
+                  maxLength={50}
                   value={formData.marque}
-                  onChange={(e) => setFormData({ ...formData, marque: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, marque: e.target.value.toLowerCase() })}
                   placeholder="Ex: Mercedes"
                 />
               </div>
@@ -320,16 +394,20 @@ export default function CamionsPage() {
                 <Label htmlFor="modele">Modèle</Label>
                 <Input
                   id="modele"
+                  maxLength={50}
                   value={formData.modele}
-                  onChange={(e) => setFormData({ ...formData, modele: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, modele: e.target.value.toLowerCase() })}
                   placeholder="Ex: Actros"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="annee">Année</Label>
+                <Label htmlFor="annee">Année *</Label>
                 <Input
                   id="annee"
                   type="number"
+                  required
+                  min={1980}
+                  max={new Date().getFullYear() + 1}
                   value={formData.annee || ""}
                   onChange={(e) =>
                     setFormData({
@@ -339,6 +417,9 @@ export default function CamionsPage() {
                   }
                   placeholder="Ex: 2020"
                 />
+                <p className="text-xs text-gray-500">
+                  Entre 1980 et {new Date().getFullYear() + 1}
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="kilometrage">Kilométrage (km)</Label>
@@ -372,6 +453,26 @@ export default function CamionsPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action est irréversible. Ce camion sera définitivement supprimé.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setCamionToDelete(null)}>
+              Annuler
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-red-600 hover:bg-red-700">
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

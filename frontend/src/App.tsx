@@ -3,6 +3,7 @@ import { useAppDispatch } from "./redux/hooks";
 import { getMeThunk } from "./redux/slices/authSlice";
 import { setAuthToken } from "./services/apiClient";
 import AppRoutes from "./routes/AppRoutes";
+import { Toaster } from "./components/ui/sonner";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -20,7 +21,12 @@ function App() {
     }
   }, [dispatch]);
 
-  return <AppRoutes />;
+  return (
+    <>
+      <AppRoutes />
+      <Toaster />
+    </>
+  );
 }
 
 export default App
