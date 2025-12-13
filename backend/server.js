@@ -22,7 +22,7 @@ connectDB();
 const corsOptions = {
   origin: [
     'http://localhost:4173',
-    'http://localhost:5173',
+    'http://localhost:5173',  
     'https://truck-fleet-manager.vercel.app',
     'https://truck-fleet-manager-git-main-spedibra-gmailcoms-projects.vercel.app',
     /\.vercel\.app$/
@@ -37,7 +37,7 @@ app.use(express.urlencoded({ extended: true }));
 // Route racine
 app.get('/', (req, res) => {
   res.json({ 
-    message: 'Bienvenue sur l\'API Truck Fleet Manager',
+    message: 'Bienvenueeev sur l\'API Truck Fleet Manager',
     version: '1.0.0',
     endpoints: {
       auth: '/api/auth',
