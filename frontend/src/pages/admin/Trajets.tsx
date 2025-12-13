@@ -203,14 +203,15 @@ export default function TrajetsPage() {
       setCamions(camionsData || []);
       setRemorques(remorquesData || []);
 
-      // Utiliser les chauffeurs récupérés depuis l'API
       const chauffeursList = (chauffeursData as any) || [];
-      const chauffeursFormatted: ChauffeurInfo[] = chauffeursList.map((chauffeur: any) => ({
-        _id: chauffeur.id || chauffeur._id,
-        nom: chauffeur.nom,
-        prenom: chauffeur.prenom,
-        email: chauffeur.email,
-      }));
+      const chauffeursFormatted: ChauffeurInfo[] = chauffeursList
+        .filter((chauffeur: any) => chauffeur.isActive === true) // Filtrer seulement les chauffeurs actifs
+        .map((chauffeur: any) => ({
+          _id: chauffeur.id || chauffeur._id,
+          nom: chauffeur.nom,
+          prenom: chauffeur.prenom,
+          email: chauffeur.email,
+        }));
       setChauffeurs(chauffeursFormatted);
     } catch (error) {
       console.error("Erreur lors du chargement:", error);
