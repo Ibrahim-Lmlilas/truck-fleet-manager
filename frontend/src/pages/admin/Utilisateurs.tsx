@@ -242,7 +242,6 @@ export default function UtilisateursPage() {
         </p>
       </div>
 
-      <Card>
         <CardHeader>
         </CardHeader>
         <CardContent className="flex flex-col gap-3 sm:gap-4">
@@ -293,7 +292,6 @@ export default function UtilisateursPage() {
             )}
           </div>
         </CardContent>
-      </Card>
 
       {/* Table */}
       <Card>
