@@ -76,23 +76,6 @@ const trajetSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Virtual: calculer distance parcourue
-trajetSchema.virtual('distanceParcourue').get(function () {
-    if (this.kmArrivee && this.kmDepart) {
-        return this.kmArrivee - this.kmDepart;
-    }
-    return 0;
-});
-
-// Virtual: calculer consommation moyenne (L/100km)
-trajetSchema.virtual('consommationMoyenne').get(function () {
-    const distance = this.distanceParcourue;
-    if (distance > 0 && this.gasoilConsomme) {
-        return ((this.gasoilConsomme / distance) * 100).toFixed(2);
-    }
-    return 0;
-});
-
 trajetSchema.index({ chauffeur: 1, statut: 1 });
 trajetSchema.index({ dateDepart: -1 });
 

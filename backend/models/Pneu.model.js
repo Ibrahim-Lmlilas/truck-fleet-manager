@@ -56,14 +56,22 @@ const pneuSchema = new mongoose.Schema({
     }
 
 }, {
-    timestamps: true
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
 });
 
 // Virtual: calculer pourcentage d'usure
 pneuSchema.virtual('usurePercentage').get(function () {
-    const kmParcouru = this.kmActuel - this.kmPose;
-    const kmTotal = this.kmMax - this.kmPose;
-    return Math.min(100, Math.round((kmParcouru / kmTotal) * 100));
+    if (this.camion && typeof this.camion === 'object' && this.camion.kilometrage != null) {
+        const kmActuel = this.camion.kilometrage;
+        const kmParcouru = kmActuel - this.kmPose;
+        const kmTotal = this.kmMax - this.kmPose;
+        if (kmTotal <= 0) return 100;
+        const usure = Math.round((kmParcouru / kmTotal) * 100);
+        return Math.min(100, Math.max(0, usure));
+    }
+    return null;
 });
 
 pneuSchema.index({ camion: 1, position: 1 });
