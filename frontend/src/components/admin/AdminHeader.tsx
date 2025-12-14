@@ -83,7 +83,7 @@ export default function AdminHeader({ onMenuClick }: Props) {
       </header>
       <style>{`
         .header-container {
-          background-color: #cbcbcd;
+          background-color: #161616ff;
           border-bottom: 1px solid #b0b0b2;
           border-radius: 0.75rem;
           margin: 0.5rem;
