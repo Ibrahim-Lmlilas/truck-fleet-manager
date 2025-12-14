@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import { logoutThunk } from "@/redux/slices/authSlice";
+import { useAuth } from "@/context";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,13 +17,12 @@ type Props = {
 };
 
 export default function AdminHeader({ onMenuClick }: Props) {
-  const dispatch = useAppDispatch();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const { user } = useAppSelector((state) => state.auth);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
 
   const handleLogout = async () => {
-    await dispatch(logoutThunk());
+    await logout();
     navigate("/login");
   };
 

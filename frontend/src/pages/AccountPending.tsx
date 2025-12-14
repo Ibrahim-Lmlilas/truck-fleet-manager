@@ -1,16 +1,14 @@
-import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import { logoutThunk } from "@/redux/slices/authSlice";
+import { useAuth } from "@/context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 
 export default function AccountPending() {
-  const dispatch = useAppDispatch();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const { user } = useAppSelector((state) => state.auth);
 
   const handleLogout = async () => {
-    await dispatch(logoutThunk());
+    await logout();
     navigate("/login");
   };
 

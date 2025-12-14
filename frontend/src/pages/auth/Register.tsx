@@ -1,15 +1,13 @@
 import { useState } from "react";
-import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import { registerThunk, getMeThunk } from "@/redux/slices/authSlice";
+import { useAuth } from "@/context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from "react-router-dom";
 
 export default function Register() {
-  const dispatch = useAppDispatch();
+  const { register, status, error } = useAuth();
   const navigate = useNavigate();
-  const { status, error } = useAppSelector((s) => s.auth);
   const [nom, setNom] = useState("");
   const [prenom, setPrenom] = useState("");
   const [email, setEmail] = useState("");
@@ -17,10 +15,11 @@ export default function Register() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await dispatch(registerThunk({ nom, prenom, email, password }));
-    if (registerThunk.fulfilled.match(res)) {
-      await dispatch(getMeThunk());
+    try {
+      await register(nom, prenom, email, password);
       navigate("/");
+    } catch (err) {
+      // Error is handled by context
     }
   };
 

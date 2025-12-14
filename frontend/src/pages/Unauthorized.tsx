@@ -1,15 +1,12 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { useAppDispatch } from "@/redux/hooks";
-import { logoutThunk } from "@/redux/slices/authSlice";
-import { setAuthToken } from "@/services/apiClient";
+import { useAuth } from "@/context";
 
 export default function Unauthorized() {
-  const dispatch = useAppDispatch();
+  const { logout } = useAuth();
 
   const handleLogout = async () => {
-    await dispatch(logoutThunk());
-    setAuthToken(null);
+    await logout();
   };
 
   return (

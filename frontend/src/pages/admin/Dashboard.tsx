@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { useAppSelector } from "@/redux/hooks";
+import { useAuth } from "@/context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Pagination,
@@ -32,7 +32,7 @@ type DashboardData = {
 const ITEMS_PER_PAGE = 3;
 
 export default function AdminDashboard() {
-  const { user } = useAppSelector((state) => state.auth);
+  const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats>({
     totalCamions: 0,
     trajetsActifs: 0,

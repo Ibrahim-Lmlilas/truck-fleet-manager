@@ -46,10 +46,10 @@ import {
   type User,
   type UserPayload,
 } from "@/services/user.service";
-import { useAppSelector } from "@/redux/hooks";
+import { useAuth } from "@/context";
 
 export default function UtilisateursPage() {
-  const { user: currentUser } = useAppSelector((state) => state.auth);
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);

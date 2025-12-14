@@ -1,24 +1,23 @@
 import { useState } from "react";
-import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import { loginThunk, getMeThunk } from "@/redux/slices/authSlice";
+import { useAuth } from "@/context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from "react-router-dom";
 
 export default function Login() {
-  const dispatch = useAppDispatch();
+  const { login, status, error } = useAuth();
   const navigate = useNavigate();
-  const { status, error } = useAppSelector((s) => s.auth);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await dispatch(loginThunk({ email, password }));
-    if (loginThunk.fulfilled.match(res)) {
-      await dispatch(getMeThunk());
+    try {
+      await login(email, password);
       navigate("/");
+    } catch (err) {
+      // Error is handled by context
     }
   };
 

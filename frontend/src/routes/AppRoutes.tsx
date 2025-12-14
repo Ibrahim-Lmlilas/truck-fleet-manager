@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useAppSelector } from "@/redux/hooks";
+import { useAuth } from "@/context";
 import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
 import NotFound from "../pages/NotFound";
@@ -21,7 +21,7 @@ import ProtectedRoute from "../components/ProtectedRoute";
 
 // Component pour rediriger selon le rôle
 function RoleBasedRedirect() {
-  const { user, token } = useAppSelector((state) => state.auth);
+  const { user, token } = useAuth();
 
   if (!token) {
     return <Landing />;

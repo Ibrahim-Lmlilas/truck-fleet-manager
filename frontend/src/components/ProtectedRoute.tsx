@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from "react-router-dom";
-import { useAppSelector } from "@/redux/hooks";
+import { useAuth } from "@/context";
 import { useEffect } from "react";
 import { setAuthToken } from "@/services/apiClient";
 
@@ -9,7 +9,7 @@ type ProtectedRouteProps = {
 };
 
 export default function ProtectedRoute({ allowedRoles, redirectTo = "/login" }: ProtectedRouteProps) {
-  const { user, token, status } = useAppSelector((state) => state.auth);
+  const { user, token, status } = useAuth();
 
   useEffect(() => {
     if (token) {
