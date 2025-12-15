@@ -20,35 +20,51 @@ export type CamionPayload = {
   kilometrage?: number;
 };
 
+export type UpdateKilometragePayload = {
+  kilometrage: number;
+};
+
+export type CamionResponse = {
+  success: boolean;
+  data: Camion;
+};
+
+export type CamionsResponse = {
+  success: boolean;
+  data: Camion[];
+};
+
+export type DeleteCamionResponse = {
+  success: boolean;
+  message?: string;
+};
+
 export const getCamions = async (): Promise<Camion[]> => {
-  const { data } = await apiClient.get<{ success: boolean; data: Camion[] }>("/camions");
+  const { data } = await apiClient.get<CamionsResponse>("/camions");
   return data.data || [];
 };
 
 export const getCamionById = async (id: string): Promise<Camion> => {
-  const { data } = await apiClient.get<{ success: boolean; data: Camion }>(`/camions/${id}`);
+  const { data } = await apiClient.get<CamionResponse>(`/camions/${id}`);
   return data.data;
 };
 
 export const createCamion = async (payload: CamionPayload): Promise<Camion> => {
-  const { data } = await apiClient.post<{ success: boolean; data: Camion }>("/camions", payload);
+  const { data } = await apiClient.post<CamionResponse>("/camions", payload);
   return data.data;
 };
 
 export const updateCamion = async (id: string, payload: CamionPayload): Promise<Camion> => {
-  const { data } = await apiClient.put<{ success: boolean; data: Camion }>(`/camions/${id}`, payload);
+  const { data } = await apiClient.put<CamionResponse>(`/camions/${id}`, payload);
   return data.data;
 };
 
 export const deleteCamion = async (id: string): Promise<{ success: boolean }> => {
-  const { data } = await apiClient.delete<{ success: boolean; message?: string }>(`/camions/${id}`);
+  const { data } = await apiClient.delete<DeleteCamionResponse>(`/camions/${id}`);
   return { success: data.success };
 };
 
-export const updateKilometrage = async (
-  id: string,
-  payload: { kilometrage: number }
-): Promise<Camion> => {
-  const { data } = await apiClient.patch<{ success: boolean; data: Camion }>(`/camions/${id}/kilometrage`, payload);
+export const updateKilometrage = async (id: string, payload: UpdateKilometragePayload): Promise<Camion> => {
+  const { data } = await apiClient.patch<CamionResponse>(`/camions/${id}/kilometrage`, payload);
   return data.data;
 };
