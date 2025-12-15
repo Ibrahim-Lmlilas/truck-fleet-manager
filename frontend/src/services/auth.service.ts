@@ -17,36 +17,50 @@ export type AuthResponse = {
   };
 };
 
-export const register = async (payload: {
+export type LoginPayload = {
+  email: string;
+  password: string;
+};
+
+export type RegisterPayload = {
   nom: string;
   prenom: string;
   email: string;
   password: string;
   role?: string;
-}): Promise<AuthResponse> => {
+};
+
+export type LogoutResponse = {
+  success: boolean;
+  message?: string;
+};
+
+export type GetMeResponse = {
+  success: boolean;
+  data: {
+    user: UserProfile;
+  };
+};
+
+export const register = async (payload: RegisterPayload): Promise<AuthResponse> => {
   const { data } = await apiClient.post<AuthResponse>("/auth/register", payload);
   setAuthToken(data.data.token);
   return data;
 };
 
-export const login = async (payload: {
-  email: string;
-  password: string;
-}): Promise<AuthResponse> => {
+export const login = async (payload: LoginPayload): Promise<AuthResponse> => {
   const { data } = await apiClient.post<AuthResponse>("/auth/login", payload);
   setAuthToken(data.data.token);
   return data;
 };
 
-export const logout = async (): Promise<{ success: boolean; message?: string }> => {
-  const { data } = await apiClient.post<{ success: boolean; message?: string }>("/auth/logout");
+export const logout = async (): Promise<LogoutResponse> => {
+  const { data } = await apiClient.post<LogoutResponse>("/auth/logout");
   setAuthToken(null);
   return data;
 };
 
 export const getMe = async (): Promise<UserProfile> => {
-  const { data } = await apiClient.get<{ success: boolean; data: { user: UserProfile } }>(
-    "/auth/me"
-  );
+  const { data } = await apiClient.get<GetMeResponse>("/auth/me");
   return data.data.user;
 };
