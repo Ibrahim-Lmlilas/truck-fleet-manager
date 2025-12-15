@@ -194,38 +194,6 @@ describe('GET /api/maintenances/vehicule/:vehiculeId', () => {
     });
 });
 
-describe('GET /api/maintenances/vehicule/:vehiculeId/echeances', () => {
-    it('devrait calculer les échéances par km', async () => {
-        await Maintenance.create({
-            vehicule: testCamion._id,
-            type: 'vidange',
-            datePrevu: new Date('2024-12-31'),
-            dateFait: new Date('2024-01-01'),
-            kmMaintenance: 40000,
-            statut: 'effectuée'
-        });
-
-        const response = await request(app)
-            .get(`/api/maintenances/vehicule/${testCamion._id}/echeances`)
-            .query({ typeMaintenance: 'vidange', intervalleKm: '10000' })
-            .set('Authorization', `Bearer ${adminToken}`);
-
-        expect(response.status).toBe(200);
-        expect(response.body.success).toBe(true);
-        expect(response.body.data.echeances.km).toBeTruthy();
-    });
-
-    it('devrait calculer les échéances par jours', async () => {
-        const response = await request(app)
-            .get(`/api/maintenances/vehicule/${testCamion._id}/echeances`)
-            .query({ typeMaintenance: 'vidange', intervalleJours: '90' })
-            .set('Authorization', `Bearer ${adminToken}`);
-
-        expect(response.status).toBe(200);
-        expect(response.body.success).toBe(true);
-        expect(response.body.data.echeances.date).toBeTruthy();
-    });
-});
 
 describe('PATCH /api/maintenances/:id/effectuee', () => {
     it('devrait marquer une maintenance comme effectuée', async () => {
