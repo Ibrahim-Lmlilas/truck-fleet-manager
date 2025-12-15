@@ -306,7 +306,6 @@ module.exports = {
     getMaintenanceById,
     getMaintenancesByVehicule,
     planifierMaintenance,
-    calculerEcheances,
     marquerCommeEffectuee,
     updateMaintenance,
     deleteMaintenance,
