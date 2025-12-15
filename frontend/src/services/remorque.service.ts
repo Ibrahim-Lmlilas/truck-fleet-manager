@@ -16,27 +16,42 @@ export type RemorquePayload = {
   capacite?: number;
 };
 
+export type RemorqueResponse = {
+  success: boolean;
+  data: Remorque;
+};
+
+export type RemorquesResponse = {
+  success: boolean;
+  data: Remorque[];
+};
+
+export type DeleteRemorqueResponse = {
+  success: boolean;
+  message?: string;
+};
+
 export const getRemorques = async (): Promise<Remorque[]> => {
-  const { data } = await apiClient.get<{ success: boolean; data: Remorque[] }>("/remorques");
+  const { data } = await apiClient.get<RemorquesResponse>("/remorques");
   return data.data || [];
 };
 
 export const getRemorqueById = async (id: string): Promise<Remorque> => {
-  const { data } = await apiClient.get<{ success: boolean; data: Remorque }>(`/remorques/${id}`);
+  const { data } = await apiClient.get<RemorqueResponse>(`/remorques/${id}`);
   return data.data;
 };
 
 export const createRemorque = async (payload: RemorquePayload): Promise<Remorque> => {
-  const { data } = await apiClient.post<{ success: boolean; data: Remorque }>("/remorques", payload);
+  const { data } = await apiClient.post<RemorqueResponse>("/remorques", payload);
   return data.data;
 };
 
 export const updateRemorque = async (id: string, payload: RemorquePayload): Promise<Remorque> => {
-  const { data } = await apiClient.put<{ success: boolean; data: Remorque }>(`/remorques/${id}`, payload);
+  const { data } = await apiClient.put<RemorqueResponse>(`/remorques/${id}`, payload);
   return data.data;
 };
 
 export const deleteRemorque = async (id: string): Promise<{ success: boolean }> => {
-  const { data } = await apiClient.delete<{ success: boolean; message?: string }>(`/remorques/${id}`);
+  const { data } = await apiClient.delete<DeleteRemorqueResponse>(`/remorques/${id}`);
   return { success: data.success };
 };
